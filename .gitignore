@@ -1,14 +1,28 @@
 # Dependencias
 node_modules/
+.pnp
+.pnp.*
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
 
 # Build output
-public/
-dist/
+/build
+/dist
 
 # Variables de entorno — NUNCA subir a Git
 .env
 .env.local
 .env.*.local
+
+# Firebase
+.firebase/
+firebase-debug.log
+functions/lib/
+functions/node_modules/
 
 # Editor / OS
 .DS_Store

@@ -1,22 +1,33 @@
 {
   "name": "mygin",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "MyGin — e-commerce de gin contemporáneo chileno (Next.js + Firebase)",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "vite": "^8.0.8"
-  },
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.2",
     "firebase": "^12.12.0",
-    "tailwindcss": "^4.2.2"
+    "firebase-admin": "^14.0.0",
+    "next": "^15.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.7.0"
   }
 }
