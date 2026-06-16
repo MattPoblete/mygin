@@ -9,6 +9,20 @@ paralelización" en el plan.
 
 ---
 
+## ✅ Pago mockeado + imágenes (sesión actual)
+
+- ✅ **Pago Flow mockeado** — el checkout abre `/checkout/mock` en ventana nueva
+  (aceptar/rechazar) y captura el resultado por `postMessage`. Backend portado de
+  Cloud Functions a **Next API routes** (`app/api/checkout/*` + `lib/server/checkout.ts`,
+  Admin SDK) para correr en el **plan gratuito Spark**. Verificado e2e: crear →
+  awaiting → aceptar → `paid`, totales recalculados server-side. `PAYMENTS_MODE=mock`.
+  - `functions/` queda como alternativa para Blaze / Flow real (no desplegado).
+- ✅ **Imágenes a WebP** — 22 imágenes (~210 MB) → WebP (máx 1600px, q82) ≈ 5.6 MB;
+  cableadas en `content/site.ts` (hero/producto/experiencia) y productos sembrados.
+  Disponibles `ingredientes/*.webp` para la grilla de botánicos (hoy usa íconos).
+
+---
+
 ## ✅ Oleada 0 — Fundación (completa)
 
 Establece los contratos compartidos de los que dependen todas las features.
