@@ -41,4 +41,11 @@ export const adminApp: App = getApps().length
   : initializeApp({ credential: resolveCredential(), projectId: 'theirgin' });
 
 export const adminDb: Firestore = getFirestore(adminApp);
+// Ignora campos undefined al escribir (p.ej. customer.rut opcional) en vez de
+// fallar. Debe configurarse antes de la primera operación de Firestore.
+try {
+  adminDb.settings({ ignoreUndefinedProperties: true });
+} catch {
+  // settings ya aplicado (módulo re-evaluado) — sin efecto.
+}
 export const adminAuth: Auth = getAuth(adminApp);
