@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/firebase/auth-context';
 const NAV = [
   { href: '/admin', label: 'Dashboard', exact: true },
   { href: '/admin/productos', label: 'Productos' },
+  { href: '/admin/blog', label: 'Blog' },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
