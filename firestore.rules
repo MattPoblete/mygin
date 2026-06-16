@@ -1,0 +1,94 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MyGin — Reglas de seguridad de Firestore (BASE — Oleada 0).
+//
+// Estructura por bloques de colección. Cada feature/worktree edita SOLO su
+// bloque (entre los marcadores `// --- <colección> ---`). La Fase 9 (Seguridad)
+// consolida y endurece todo antes de producción.
+//
+// Principio: el cliente NUNCA escribe stock ni órdenes; eso lo hacen las Cloud
+// Functions con el Admin SDK (que bypassa estas reglas).
+// ─────────────────────────────────────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ───────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // --- products ---
+    match /products/{productId} {
+      // Lectura pública solo de productos activos; admin lee todo.
+      allow read: if resource.data.active == true || isAdmin();
+      // El stock se modifica solo vía Cloud Functions (Admin SDK).
+      allow write: if isAdmin();
+    }
+
+    // --- orders ---
+    match /orders/{orderId} {
+      // Las órdenes se crean/actualizan exclusivamente vía Cloud Functions.
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // --- coupons ---
+    match /coupons/{couponId} {
+      // La validación de cupones es server-side; el cliente nunca los lee.
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // --- blogPosts ---
+    match /blogPosts/{postId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // --- comments ---
+    match /comments/{commentId} {
+      // Lectura pública solo de comentarios aprobados.
+      allow read: if resource.data.status == 'approved' || isAdmin();
+      // Creación pública pero forzando estado 'pending' y forma válida.
+      allow create: if request.resource.data.status == 'pending'
+                    && request.resource.data.body is string
+                    && request.resource.data.body.size() > 0
+                    && request.resource.data.body.size() <= 2000
+                    && (!('rating' in request.resource.data)
+                        || (request.resource.data.rating >= 1 && request.resource.data.rating <= 5));
+      // Moderación solo admin.
+      allow update, delete: if isAdmin();
+    }
+
+    // --- contactSubmissions ---
+    match /contactSubmissions/{id} {
+      // Creación validada (preferible vía callable submitContact); lectura admin.
+      allow create: if request.resource.data.email is string
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.status == 'new';
+      allow read, update, delete: if isAdmin();
+    }
+
+    // --- teamMembers ---
+    match /teamMembers/{id} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // --- config ---
+    match /config/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    // Denegar todo lo no declarado explícitamente.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

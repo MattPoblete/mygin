@@ -1,0 +1,25 @@
+{
+  "name": "mygin-functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions de MyGin — pagos Flow, inventario atómico, cupones, moderación, contacto.",
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.0.0",
+    "firebase-functions": "^6.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "private": true
+}
