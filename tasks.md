@@ -61,7 +61,7 @@ producto con stock, y arme un carrito persistente con subtotales.
 - ⬜ `app/(shop)/carrito/page.tsx` — editar cantidades, subtotal (solo display).
 - **Contrato:** `CartItem` (definir en `lib/types.cart.ts`).
 
-### Worktree B — Inventario + Flow + Cupones  ⬜
+### Worktree B — Inventario + Flow + Cupones  🔄
 **Feature:** Checkout con pago Flow, inventario atómico y cupones (Req. 2, 3, 4).
 **Objetivo:** Crear orden con reserva atómica de stock, pagar vía Flow sin exponer
 llaves, confirmar por webhook y aplicar cupones server-side. Sin overselling.
