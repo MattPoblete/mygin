@@ -46,9 +46,10 @@ Establece los contratos compartidos de los que dependen todas las features.
 
 ---
 
-## 🔄 Oleada 1 — Fan-out paralelo (4 worktrees) — A/C/D ✅, B ⬜
+## ✅ Oleada 1 — Fan-out paralelo (4 worktrees) — A/C/D/B ✅
 
-Integradas A, C y D en `master` (build verde, 14 rutas). Falta B (Flow).
+Las 4 features integradas en `master`. Build Next verde (21 rutas) + `functions/` tsc limpio.
+Pendiente operativo de B: setear secretos de Flow + `firebase deploy --only functions,firestore:indexes`.
 
 ### Worktree A — Catálogo + Carrito  ✅  *(diferido: drawer en navbar; reseñas Oleada 2; botón checkout deshabilitado hasta B)*
 **Feature:** Tienda pública y carrito persistente (Req. 1).
@@ -61,7 +62,7 @@ producto con stock, y arme un carrito persistente con subtotales.
 - ⬜ `app/(shop)/carrito/page.tsx` — editar cantidades, subtotal (solo display).
 - **Contrato:** `CartItem` (definir en `lib/types.cart.ts`).
 
-### Worktree B — Inventario + Flow + Cupones  🔄
+### Worktree B — Inventario + Flow + Cupones  ✅  *(pendiente: secretos Flow + deploy functions/indexes; sandbox de Flow para probar pago)*
 **Feature:** Checkout con pago Flow, inventario atómico y cupones (Req. 2, 3, 4).
 **Objetivo:** Crear orden con reserva atómica de stock, pagar vía Flow sin exponer
 llaves, confirmar por webhook y aplicar cupones server-side. Sin overselling.
