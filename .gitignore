@@ -24,6 +24,11 @@ firebase-debug.log
 functions/lib/
 functions/node_modules/
 
+# Firebase service account keys — NUNCA subir a Git (acceso admin total)
+*firebase-adminsdk*.json
+*-adminsdk-*.json
+serviceAccount*.json
+
 # Editor / OS
 .DS_Store
 Thumbs.db

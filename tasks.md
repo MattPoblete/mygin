@@ -46,9 +46,11 @@ Establece los contratos compartidos de los que dependen todas las features.
 
 ---
 
-## ⬜ Oleada 1 — Fan-out paralelo (4 worktrees)
+## 🔄 Oleada 1 — Fan-out paralelo (4 worktrees) — A/C/D ✅, B ⬜
 
-### Worktree A — Catálogo + Carrito  🔄
+Integradas A, C y D en `master` (build verde, 14 rutas). Falta B (Flow).
+
+### Worktree A — Catálogo + Carrito  ✅  *(diferido: drawer en navbar; reseñas Oleada 2; botón checkout deshabilitado hasta B)*
 **Feature:** Tienda pública y carrito persistente (Req. 1).
 **Objetivo:** Que un cliente navegue el catálogo desde Firestore, vea el detalle de
 producto con stock, y arme un carrito persistente con subtotales.
@@ -73,7 +75,7 @@ llaves, confirmar por webhook y aplicar cupones server-side. Sin overselling.
 - **Contrato:** firma de `createOrder(cart, customer, code)`. Secretos en Secret Manager.
 - **Tipos:** `lib/types.order.ts`, `lib/types.coupon.ts`.
 
-### Worktree C — Equipo + Contacto  🔄  *(independiente)*
+### Worktree C — Equipo + Contacto  ✅  *(diferido: email de aviso vía Cloud Function onCreate)*
 **Feature:** Secciones corporativas SEO (Req. 7).
 **Objetivo:** Página "Nuestro Equipo" y formulario dinámico de contacto comercial que
 persiste en Firestore y notifica al equipo.
@@ -82,7 +84,7 @@ persiste en Firestore y notifica al equipo.
 - ⬜ `functions/src/contact/{submitContact,onContactCreated}.ts` — guarda + email.
 - **Tipos:** `lib/types.contact.ts`, `lib/types.team.ts`.
 
-### Worktree D — Blog / CMS  🔄
+### Worktree D — Blog / CMS  ✅  *(diferido: subida de portada a Firebase Storage; por ahora coverImage por URL)*
 **Feature:** Blog auto-administrable con SEO (Req. 5).
 **Objetivo:** Publicar artículos/recetas/noticias desde el admin y renderizarlos
 indexables por SEO.
