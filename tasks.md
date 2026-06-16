@@ -28,17 +28,21 @@ Establece los contratos compartidos de los que dependen todas las features.
 
 ---
 
-## 🔄 Backend Firebase — proyecto `434752294989` + Google Sign-in
+## ✅ Backend Firebase — proyecto `434752294989` (theirgin) + Google Sign-in
 
 **Feature:** Migrar el backend al proyecto Firebase del usuario y habilitar Google Sign-in.
-**Objetivo:** Usar el proyecto `434752294989` con Auth (Google + email/password) y Firestore.
+**Objetivo:** Usar el proyecto `theirgin` (434752294989) con Auth (Google + email/password) y Firestore.
 - ✅ Código Google Sign-in (`auth-context.signInWithGoogle`, botón en `LoginScreen`).
 - ✅ Bloque `auth` en `firebase.json` (googleSignIn + emailPassword).
-- ⬜ **Login a Firebase CLI** (interactivo — lo corre el usuario).
-- ⬜ Registrar app web en `434752294989` (`firebase apps:create WEB`).
-- ⬜ Actualizar config en `lib/firebase/client.ts` (apiKey/appId/etc. del nuevo proyecto).
-- ⬜ Actualizar `projectId` en `lib/firebase/admin.ts`, `scripts/*.mjs`, `.firebaserc`.
-- ⬜ `firebase deploy --only auth` (genera el OAuth client de Google).
+- ✅ App web registrada (`1:434752294989:web:ae5460b3957beb215bcc04`).
+- ✅ Config en `.env.local` (`NEXT_PUBLIC_FIREBASE_*`); `lib/firebase/client.ts` lee de env.
+- ✅ `projectId: theirgin` en `admin.ts`, `scripts/_admin.mjs`, `.firebaserc`.
+- ✅ Firestore `(default)` creada — **Native / Standard / southamerica-west1**.
+- ✅ Reglas e índices desplegados (`deploy --only firestore`).
+- ✅ Auth providers habilitados (`deploy --only auth`): email/password + Google.
+- ⬜ **Operativo (usuario):** crear admin en Auth + `node scripts/set-admin-claim.mjs <email>`
+  (requiere ADC/service account — gcloud no instalado).
+- ⬜ **Operativo:** sembrar catálogo (`node scripts/seed-firestore.mjs`) o crear productos en /admin.
 
 ---
 

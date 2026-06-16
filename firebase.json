@@ -11,8 +11,7 @@
       "emailPassword": true,
       "googleSignIn": {
         "oAuthBrandDisplayName": "MyGin",
-        "supportEmail": "destileriamygin@gmail.com",
-        "authorizedRedirectUris": ["http://localhost"]
+        "supportEmail": "destileriamygin@gmail.com"
       }
     }
   },

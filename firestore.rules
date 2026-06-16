@@ -18,9 +18,6 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && request.auth.token.admin == true;
     }
-    function isSignedIn() {
-      return request.auth != null;
-    }
 
     // --- products ---
     match /products/{productId} {
