@@ -111,7 +111,7 @@ const site = {
     headline: 'El sabor que\nsiempre fue chileno.',
     subheadline:
       'Destilado a las orillas del Río Pedregoso, con botánicos que ya conoces: huesillo, tomillo y 9 más.',
-    bgImage: '/assets/images/hero_bg.jpeg',
+    bgImage: '/assets/images/comunidad.webp',
     ctas: [
       { label: 'Conoce el Gin', type: 'primary', href: '#producto' },
       { label: 'Dónde comprarlo', type: 'outline', href: '#distribuidores' },
@@ -141,7 +141,7 @@ const site = {
     label: 'El Producto',
     headline: '11 botánicos.\nUn solo Chile.',
     body: 'MyGin es un gin contemporáneo de alta expresión botánica. El huesillo le da un dulzor frutal único, el tomillo aporta el aroma herbal intenso, y los 9 botánicos restantes completan un perfil cítrico, cálido y redondo que no encontrarás en ningún gin importado.',
-    image: '/assets/images/botella_naturaleza.jpeg',
+    image: '/assets/images/assets/botella_naturaleza.webp',
     sensorProfile: [
       { icon: 'air', label: 'Aroma', value: 'Herbal intenso con tomillo fresco' },
       { icon: 'water_drop', label: 'Sabor', value: 'Cítrico brillante con dulzor de huesillo' },
@@ -183,10 +183,10 @@ const site = {
     label: 'La Experiencia',
     headline: 'No vendemos gin,\nvendemos momentos.',
     moments: [
-      { image: '/assets/images/amigos.jpeg', caption: 'Esa noche que se alarga sin querer.' },
-      { image: '/assets/images/supermercado.jpeg', caption: 'El instante perfecto.' },
-      { image: '/assets/images/marciano.jpeg', caption: 'El gin que eleva cualquier escenario.' },
-      { image: '/assets/images/botella_naturaleza.jpeg', caption: 'Botánicos chilenos, pureza natural.' },
+      { image: '/assets/images/comunidad.webp', caption: 'Esa noche que se alarga sin querer.' },
+      { image: '/assets/images/assets/promo_copa.webp', caption: 'El instante perfecto.' },
+      { image: '/assets/images/Alien.webp', caption: 'El gin que eleva cualquier escenario.' },
+      { image: '/assets/images/assets/botella_naturaleza.webp', caption: 'Botánicos chilenos, pureza natural.' },
     ] as Moment[],
   },
 

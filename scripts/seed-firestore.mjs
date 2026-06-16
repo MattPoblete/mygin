@@ -23,7 +23,7 @@ const products = [
     shortDesc: '750 ml · Gin Contemporáneo',
     longDesc:
       'Gin contemporáneo chileno de alta expresión botánica. 11 botánicos, con huesillo y tomillo de la Araucanía. Despacho a todo Chile.',
-    images: ['/assets/images/botella_naturaleza.jpeg'],
+    images: ['/assets/images/assets/botella_naturaleza.webp'],
     price: 17990,
     currency: 'CLP',
     stock: 48,
@@ -43,7 +43,7 @@ const products = [
     shortDesc: '2 Botellas · Ahorra $3.000',
     longDesc:
       'Dos botellas de MyGin Gin Contemporáneo. Recetario digital incluido y envío priority 24h.',
-    images: ['/assets/images/botella_naturaleza.jpeg'],
+    images: ['/assets/images/assets/promo_pack.webp'],
     price: 32990,
     currency: 'CLP',
     stock: 24,
