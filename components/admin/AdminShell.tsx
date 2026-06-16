@@ -9,6 +9,8 @@ import { useAuth } from '@/lib/firebase/auth-context';
 const NAV = [
   { href: '/admin', label: 'Dashboard', exact: true },
   { href: '/admin/productos', label: 'Productos' },
+  { href: '/admin/pedidos', label: 'Pedidos' },
+  { href: '/admin/cupones', label: 'Cupones' },
   { href: '/admin/blog', label: 'Blog' },
 ];
 
