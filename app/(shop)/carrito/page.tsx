@@ -110,15 +110,10 @@ export default function CarritoPage() {
                 El total final (despacho e impuestos) se calcula en el pago.
               </p>
 
-              {/* Checkout — worktree B, aún no disponible. */}
-              <button
-                type="button"
-                disabled
-                title="Próximamente"
-                className="btn-primary mt-6 w-full cursor-not-allowed opacity-60"
-              >
-                Ir a pagar (próximamente)
-              </button>
+              {/* Checkout — worktree B. */}
+              <Link href="/checkout" className="btn-primary mt-6 block w-full text-center">
+                Ir a pagar
+              </Link>
 
               <button
                 type="button"
