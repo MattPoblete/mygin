@@ -349,6 +349,7 @@ const site = {
   footer: {
     links: [
       { label: 'Drink Responsibly', href: '#' },
+      { label: 'Equipo', href: '/equipo' },
       { label: 'Contacto', href: '/contacto' },
       { label: 'Instagram', href: 'https://instagram.com/mygin.cl' },
     ],
