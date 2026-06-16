@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Superficie & Fondos (Navy) ── */
+  --color-background:               #1a3a52;
+  --color-surface:                  #1a3a52;
+  --color-surface-dim:              #15303f;
+  --color-surface-container-lowest: #0f2435;
+  --color-surface-container-low:    #1e3e57;
+  --color-surface-container:        #234560;
+  --color-surface-container-high:   #2d556f;
+  --color-surface-container-highest:#37637c;
+  --color-surface-variant:          #37637c;
+  --color-surface-bright:           #3f6e89;
+
+  /* ── Texto ── */
+  --color-on-surface:               #ffffff;
+  --color-on-surface-variant:       #b8b5b0;
+  --color-on-background:            #ffffff;
+
+  /* ── Primario (Crimson) ── */
+  --color-primary:                  #dc3545;
+  --color-primary-fixed:            #ff6b76;
+  --color-primary-fixed-dim:        #dc3545;
+  --color-primary-container:        #b82835;
+  --color-on-primary:               #ffffff;
+  --color-on-primary-container:     #ffffff;
+  --color-on-primary-fixed:         #ffffff;
+  --color-inverse-primary:          #dc3545;
+  --color-surface-tint:             #dc3545;
+
+  /* ── Secundario (Cream) ── */
+  --color-secondary:                #f8f5f0;
+  --color-secondary-fixed-dim:      #f8f5f0;
+  --color-secondary-fixed:          #ffffff;
+  --color-secondary-container:      #2d556f;
+  --color-on-secondary:             #1a3a52;
+  --color-on-secondary-container:   #f8f5f0;
+  --color-on-secondary-fixed:       #1a3a52;
+  --color-on-secondary-fixed-variant:#d8d4cc;
+
+  /* ── Terciario (Cream warm) ── */
+  --color-tertiary:                 #e8e2d8;
+  --color-tertiary-fixed:           #f8f5f0;
+  --color-tertiary-fixed-dim:       #e8e2d8;
+  --color-tertiary-container:       #2d556f;
+  --color-on-tertiary:              #1a3a52;
+  --color-on-tertiary-container:    #f8f5f0;
+  --color-on-tertiary-fixed:        #1a3a52;
+  --color-on-tertiary-fixed-variant:#d8d4cc;
+
+  /* ── Bordes ── */
+  --color-outline:                  #5a7d96;
+  --color-outline-variant:          #2d556f;
+
+  /* ── Inversos ── */
+  --color-inverse-surface:          #f8f5f0;
+  --color-inverse-on-surface:       #1a3a52;
+
+  /* ── Error ── */
+  --color-error:                    #ffb4ab;
+  --color-error-container:          #93000a;
+  --color-on-error:                 #690005;
+  --color-on-error-container:       #ffdad6;
+
+  /* ── Tipografía (extraída de la etiqueta) ── */
+  --font-headline: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body:     "Montserrat", "Segoe UI", sans-serif;
+  --font-label:    "Montserrat", "Segoe UI", sans-serif;
+  --font-elegant:  "Cormorant Garamond", Georgia, serif;
+
+  /* ── Border radius (architectural) ── */
+  --radius:      0.125rem;
+  --radius-lg:   0.25rem;
+  --radius-xl:   0.5rem;
+  --radius-full: 0.75rem;
+}
+
+/* ── Material Symbols ───────────────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Botones CTA (primary/outline) — identidad compartida ────── */
+.btn-primary {
+  @apply bg-primary text-on-primary px-10 py-4 font-bold tracking-widest uppercase text-xs rounded-lg transition-opacity;
+}
+.btn-primary:hover { @apply opacity-90; }
+
+.btn-outline {
+  @apply border border-outline-variant/40 text-secondary px-10 py-4 font-bold tracking-widest uppercase text-xs rounded-lg transition-all;
+}
+.btn-outline:hover { @apply bg-surface-container-high; }
+
+/* ── Scroll reveal (usado por <RevealObserver>) ─────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal--delay-1 { transition-delay: 0.1s; }
+.reveal--delay-2 { transition-delay: 0.2s; }
+.reveal--delay-3 { transition-delay: 0.3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── Nav scroll state (usado por <Navbar>) ──────────────────── */
+.nav--scrolled {
+  background-color: color-mix(in srgb, #0f2435 85%, transparent);
+}
+
+/* ── Tipografía: respiro de lujo en headlines + utilidades ──── */
+h1, h2, h3, .th { letter-spacing: 0.04em; }
+
+.headline-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.font-elegant {
+  font-family: var(--font-elegant);
+  font-weight: 300;
+  letter-spacing: 0.03em;
+}
+
+/* ── Details/Summary (recetas — ingredientes expandibles) ─── */
+details summary::-webkit-details-marker { display: none; }
+details[open] summary span.expand-icon  { transform: rotate(180deg); }
+
+/* ── MINSAL warning — tipografía extra pequeña ───────────────── */
+[data-footer="minsal"] {
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+}
