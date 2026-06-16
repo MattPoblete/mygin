@@ -79,3 +79,22 @@ export async function getOrderStatus(orderId: string): Promise<OrderStatusResult
   const res = await _getOrderStatus({ orderId });
   return res.data;
 }
+
+// --- Pago simulado (mock) ---
+export interface MockConfirmResult {
+  status: 'paid' | 'cancelled' | 'noop';
+}
+
+const _mockConfirmPayment = httpsCallable<
+  { orderId: string; decision: 'accept' | 'reject' },
+  MockConfirmResult
+>(functions, 'mockConfirmPayment');
+
+/** Confirma (acepta/rechaza) un pago simulado. Solo activo en PAYMENTS_MODE=mock. */
+export async function mockConfirmPayment(
+  orderId: string,
+  decision: 'accept' | 'reject',
+): Promise<MockConfirmResult> {
+  const res = await _mockConfirmPayment({ orderId, decision });
+  return res.data;
+}

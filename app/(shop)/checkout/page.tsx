@@ -24,11 +24,12 @@ const REGIONES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotal, count } = useCart();
+  const { items, subtotal, count, clear } = useCart();
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
   const [busy, setBusy] = useState(false);
+  const [waiting, setWaiting] = useState(false);
   const [error, setError] = useState('');
 
   // Cupón
@@ -96,12 +97,37 @@ export default function CheckoutPage() {
 
     setBusy(true);
     try {
-      const { redirectUrl } = await createOrder({
+      const { orderId, redirectUrl } = await createOrder({
         items,
         customer,
         couponCode: couponState?.valid ? couponCode.trim() : undefined,
       });
-      window.location.href = redirectUrl;
+      // Abre la ventana de pago. La URL puede ser relativa (mock) o absoluta (Flow).
+      const payUrl = new URL(redirectUrl, window.location.origin).href;
+      const win = window.open(payUrl, 'mygin-pago', 'width=480,height=720');
+      if (!win) {
+        // Popup bloqueado: navega en la misma pestaña como fallback.
+        window.location.href = payUrl;
+        return;
+      }
+      setWaiting(true);
+
+      const finish = (status?: string) => {
+        window.removeEventListener('message', onMessage);
+        clearInterval(poll);
+        if (status === 'paid') clear();
+        router.push(`/checkout/confirmacion/${orderId}`);
+      };
+      const onMessage = (e: MessageEvent) => {
+        if (e.origin !== window.location.origin) return;
+        const d = e.data as { type?: string; orderId?: string; status?: string };
+        if (d?.type === 'mygin-pago' && d.orderId === orderId) finish(d.status);
+      };
+      window.addEventListener('message', onMessage);
+      // Si el usuario cierra la ventana sin decidir, igual vamos a la confirmación.
+      const poll = setInterval(() => {
+        if (win.closed) finish();
+      }, 800);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'No se pudo iniciar el pago.';
       setError(msg);
@@ -177,13 +203,15 @@ export default function CheckoutPage() {
 
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || waiting}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {busy ? 'Redirigiendo a Flow…' : 'Pagar'}
+              {waiting ? 'Esperando el pago…' : busy ? 'Abriendo el pago…' : 'Pagar'}
             </button>
             <p className="text-xs text-on-surface-variant/70 text-center">
-              Serás redirigido a Flow para completar el pago de forma segura.
+              {waiting
+                ? 'Completa el pago en la ventana que se abrió. Esta página se actualizará al terminar.'
+                : 'Se abrirá una ventana para completar el pago de forma segura.'}
             </p>
           </form>
 

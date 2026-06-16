@@ -16,6 +16,7 @@
  */
 export { createOrder } from './flow/createOrder.js';
 export { flowWebhook } from './flow/flowWebhook.js';
+export { mockConfirmPayment } from './flow/mockConfirmPayment.js';
 export { getOrderStatus } from './flow/getOrderStatus.js';
 export { releaseExpiredReservations } from './inventory/releaseExpired.js';
 export { validateCoupon } from './coupons/validate.js';

@@ -17,6 +17,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { db } from '../shared/admin.js';
 import { SHIPPING_FLAT_CLP, RESERVATION_MINUTES } from '../shared/constants.js';
+import { isMockMode } from '../shared/payments.js';
 import { createPayment } from './flowClient.js';
 import {
   findCouponByCode,
@@ -207,6 +208,17 @@ export const createOrder = onCall(
 
       return { subtotal, discount, total, items: orderItems };
     });
+
+    // --- Pago SIMULADO (mock): no se llama a Flow ---
+    // Devuelve una URL relativa a la ventana de pago simulada; el cliente la abre
+    // en una ventana nueva y la confirma vía mockConfirmPayment.
+    if (isMockMode()) {
+      await orderRef.update({
+        'flow.token': `MOCK-${orderRef.id}`,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return { orderId: orderRef.id, redirectUrl: `/checkout/mock?orderId=${orderRef.id}` };
+    }
 
     // --- Crear el pago en Flow (fuera de la transacción) ---
     const creds = { apiKey: FLOW_API_KEY.value(), secretKey: FLOW_SECRET_KEY.value() };
