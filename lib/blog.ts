@@ -40,16 +40,20 @@ export interface BlogPostInput {
   seo: BlogSeo;
 }
 
-/** Artículos publicados, ordenados por fecha de publicación desc. Uso público. */
+/**
+ * Artículos publicados, ordenados por fecha de publicación desc. Uso público.
+ * Un solo `where` de igualdad SIN orderBy → índice de campo único automático (no
+ * compuesto); se ordena en memoria. Así no depende de un índice desplegado ni
+ * descarta posts que carezcan de `publishedAt`.
+ */
 export async function listPublishedPosts(): Promise<BlogPost[]> {
   const snap = await getDocs(
-    query(
-      collection(db, COLLECTION),
-      where('status', '==', 'published'),
-      orderBy('publishedAt', 'desc'),
-    ),
+    query(collection(db, COLLECTION), where('status', '==', 'published')),
   );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as BlogPost);
+  const ms = (t: BlogPost['publishedAt']) => (t && 'toMillis' in t ? t.toMillis() : 0);
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as BlogPost)
+    .sort((a, b) => ms(b.publishedAt) - ms(a.publishedAt));
 }
 
 /** Un artículo publicado por slug (docId). Devuelve null si no existe o es draft. */

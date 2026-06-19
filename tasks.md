@@ -203,18 +203,20 @@ queda `pending` → admin aprueba → se publica; rating agregado en el producto
 - ✅ **Endurecer creates públicos** (`firestore.rules`) — allowlist `keys().hasOnly([...])`
   + topes de tamaño en `comments` y `contactSubmissions` (cierra inyección de campos
   arbitrarios); resto de bloques ya estrictos (deny-by-default, orders/coupons admin-only).
-- ✅ **Índices reales** (`firestore.indexes.json`) — compuestos faltantes
-  `teamMembers(active, order)` y `blogPosts(status, publishedAt)` (las queries de /equipo y
-  /blog fallaban en producción; el emulador las ignora).
+- ✅ **Queries públicas sin índice compuesto** (`lib/blog.ts`, `equipo/page.tsx`) — `/blog` y
+  `/equipo` usaban `where(=) + orderBy(otro campo)`, que exige índice compuesto desplegado;
+  sin él Firestore lanza `FAILED_PRECONDITION` y el `.catch(()=>[])` lo ocultaba (un post
+  publicado no aparecía). Refactorizadas a un solo `where` + orden en memoria (igual que
+  `getApprovedReviews`): sin índice que desplegar y sin descartar docs por campo faltante.
 - ✅ **Pruebas de overselling concurrente** — `e2e/overselling.spec.ts`: N create-order en
   paralelo contra `mygin-concurrencia` (stock 5) verifican 200===stock, resto 409, cero 500.
   Confirma que `createOrderServer` (transacción Admin SDK) no sobre-vende. **105 e2e verde.**
 - ⬜ **App Check / reCAPTCHA — diferido (operativo):** necesita clave reCAPTCHA + enforcement
   en consola, y NO cubre el checkout (las API routes usan Admin SDK, que bypassa App Check).
   Solo protegería los `addDoc` públicos (reseñas/contacto), ya validados por reglas.
-- ⬜ **Operativo (usuario):** `firebase deploy --only firestore:indexes,firestore:rules`
-  para publicar índices nuevos + reglas endurecidas en `theirgin` (sin esto, /equipo y /blog
-  fallan sus queries en producción). Switch Flow sandbox→prod queda para cuando se use Flow real.
+- ⬜ **Operativo (usuario):** `firebase deploy --only firestore:rules` para publicar las
+  reglas endurecidas en `theirgin`. (Ya no hace falta desplegar índices: las queries públicas
+  no requieren compuestos.) Switch Flow sandbox→prod queda para cuando se use Flow real.
 
 ---
 

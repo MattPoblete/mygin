@@ -7,7 +7,7 @@
  * quede vacía y conserve su valor SEO.
  */
 import type { Metadata } from 'next';
-import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import SectionHeader from '@/components/ui/SectionHeader';
 import type { TeamMember } from '@/lib/types.team';
@@ -50,13 +50,17 @@ const FALLBACK_TEAM: TeamMember[] = [
   },
 ];
 
-/** Lee miembros activos ordenados; devuelve [] ante cualquier error o vacío. */
+/**
+ * Lee miembros activos ordenados por `order`; devuelve [] ante cualquier error o vacío.
+ * `where` de igualdad SIN orderBy → índice de campo único automático (no compuesto);
+ * se ordena en memoria.
+ */
 async function getTeamMembers(): Promise<TeamMember[]> {
   try {
-    const snap = await getDocs(
-      query(collection(db, 'teamMembers'), where('active', '==', true), orderBy('order')),
-    );
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<TeamMember, 'id'>) }));
+    const snap = await getDocs(query(collection(db, 'teamMembers'), where('active', '==', true)));
+    return snap.docs
+      .map((d) => ({ id: d.id, ...(d.data() as Omit<TeamMember, 'id'>) }))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   } catch {
     return [];
   }
