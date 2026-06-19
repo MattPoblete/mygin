@@ -4,6 +4,7 @@ import Navbar from '@/components/nav/Navbar';
 import Footer from '@/components/nav/Footer';
 import RevealObserver from '@/components/RevealObserver';
 import AgeGate from '@/components/AgeGate';
+import { CartProvider } from '@/lib/cart/CartProvider';
 
 export const metadata: Metadata = {
   title: 'MyGin — El gin que se vive.',
@@ -27,11 +28,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-body bg-background text-on-surface selection:bg-primary/30 selection:text-primary">
-        <AgeGate />
-        <Navbar />
-        {children}
-        <Footer />
-        <RevealObserver />
+        <CartProvider>
+          <AgeGate />
+          <Navbar />
+          {children}
+          <Footer />
+          <RevealObserver />
+        </CartProvider>
       </body>
     </html>
   );

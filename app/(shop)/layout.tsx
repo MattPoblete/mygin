@@ -1,11 +1,8 @@
-import { CartProvider } from '@/lib/cart/CartProvider';
-
 /**
- * app/(shop)/layout.tsx — Envuelve la tienda con el contexto del carrito.
- *
- * El layout raíz ya pone Navbar/Footer; aquí solo agregamos el provider para
- * que toda la sección de tienda comparta un único estado de carrito.
+ * app/(shop)/layout.tsx — La sección de tienda no necesita provider propio: el
+ * CartProvider vive en el layout raíz para que el Navbar global comparta el mismo
+ * estado de carrito que las páginas de tienda.
  */
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
-  return <CartProvider>{children}</CartProvider>;
+  return children;
 }

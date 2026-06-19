@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import site from '@/content/site';
+import { useCart } from '@/lib/cart/CartProvider';
 
 /**
  * Navbar — calca ui_kits/website/Nav.jsx: sticky 64px, navy translúcido + blur,
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>('');
   const pathname = usePathname();
+  const { count } = useCart();
 
   // Fuera de la landing, las anclas (#top…) deben volver a "/#top"; en "/" se quedan
   // como ancla pura para el scroll nativo in-page + scroll-spy.
@@ -44,12 +46,35 @@ export default function Navbar() {
   };
 
   const CartIcon = (
-    <Link href="/carrito" aria-label="Carrito" className="relative flex items-center text-white">
+    <Link
+      href="/carrito"
+      aria-label={count > 0 ? `Carrito, ${count} ${count === 1 ? 'producto' : 'productos'}` : 'Carrito'}
+      className="relative flex items-center text-white"
+    >
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="9" cy="21" r="1" />
         <circle cx="20" cy="21" r="1" />
         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
       </svg>
+      {count > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute flex items-center justify-center font-body font-semibold text-white"
+          style={{
+            top: -6,
+            right: -8,
+            minWidth: 18,
+            height: 18,
+            padding: '0 5px',
+            fontSize: 11,
+            lineHeight: 1,
+            borderRadius: 'var(--radius-pill)',
+            background: 'var(--crimson)',
+          }}
+        >
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
     </Link>
   );
 
