@@ -8,6 +8,9 @@ import { serializeProduct } from '@/lib/products';
 import { formatPrice } from '@/lib/cta';
 import { availableStock, isLowStock } from '@/lib/cart/stock';
 import AddToCartButton from '@/components/shop/AddToCartButton';
+import ReviewForm from '@/components/shop/ReviewForm';
+import Stars from '@/components/shop/Stars';
+import { getApprovedReviews } from '@/lib/comments';
 import Icon from '@/components/ui/Icon';
 import JsonLd from '@/components/seo/JsonLd';
 import { SITE_URL, ORGANIZATION, absoluteUrl } from '@/lib/seo';
@@ -101,6 +104,11 @@ export default async function ProductoPage({
   const low = isLowStock(product);
   const soldOut = avail <= 0;
   const image = product.images?.[0] ?? '';
+
+  const reviews = await getApprovedReviews(product.id);
+  const ratingCount = product.ratingCount ?? 0;
+  const average = ratingCount > 0 ? (product.ratingSum ?? 0) / ratingCount : 0;
+  const reviewDate = new Intl.DateTimeFormat('es-CL', { dateStyle: 'long' });
 
   return (
     <main className="bg-background min-h-screen pt-32 pb-32">
@@ -214,11 +222,55 @@ export default async function ProductoPage({
               </p>
             )}
 
-            {/* Reseñas — Oleada 2 (placeholder).
-                Aquí irá el bloque de reseñas de clientes leyendo ratingSum/ratingCount
-                y la subcolección reviews. Lo implementa su feature, no este worktree. */}
+            {ratingCount > 0 && (
+              <div className="mt-6 flex items-center gap-2 text-sm">
+                <Stars value={average} label={`${average.toFixed(1)} de 5`} />
+                <span className="text-on-surface-variant">
+                  {average.toFixed(1)} · {ratingCount} {ratingCount === 1 ? 'reseña' : 'reseñas'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Reseñas */}
+        <section className="mt-20 border-t border-outline-variant/20 pt-12" aria-labelledby="resenas">
+          <h2 id="resenas" className="font-headline text-2xl tracking-tight text-on-surface">
+            Reseñas
+          </h2>
+
+          {reviews.length > 0 ? (
+            <ul className="mt-8 flex flex-col gap-8">
+              {reviews.map((r) => (
+                <li key={r.id} className="border-b border-outline-variant/10 pb-8 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <Stars value={r.rating} />
+                    <span className="text-sm font-semibold text-on-surface">{r.authorName}</span>
+                    {typeof r.createdAt === 'number' && (
+                      <span className="text-xs text-on-surface-variant">
+                        {reviewDate.format(r.createdAt)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-on-surface-variant">
+                    {r.body}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-6 text-sm text-on-surface-variant">
+              Aún no hay reseñas. Sé el primero en opinar.
+            </p>
+          )}
+
+          <div className="mt-12 max-w-xl">
+            <h3 className="font-headline text-lg tracking-tight text-on-surface mb-6">
+              Escribe una reseña
+            </h3>
+            <ReviewForm productId={product.id} productSlug={product.slug} />
+          </div>
+        </section>
       </div>
     </main>
   );

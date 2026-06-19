@@ -4,14 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 
-// ponytail: las rutas de Oleada 1 (pedidos/cupones/blog/comentarios) se agregan
-// aquí cuando exista su feature.
 const NAV = [
   { href: '/admin', label: 'Dashboard', exact: true },
   { href: '/admin/productos', label: 'Productos' },
   { href: '/admin/pedidos', label: 'Pedidos' },
   { href: '/admin/cupones', label: 'Cupones' },
   { href: '/admin/blog', label: 'Blog' },
+  { href: '/admin/comentarios', label: 'Reseñas' },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {

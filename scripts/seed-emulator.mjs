@@ -29,7 +29,8 @@ const products = [
   { slug: 'mygin-botella-individual', name: 'MyGin — Botella Individual', type: 'gin',
     shortDesc: '750 ml · Gin Contemporáneo', longDesc: 'Gin contemporáneo chileno. 11 botánicos.',
     images: ['/assets/images/assets/botella_naturaleza.webp'], price: 17990, currency: 'CLP',
-    stock: 48, stockReserved: 0, lowStockThreshold: 6, sku: 'MYGIN-750-01', active: true, featured: false, badge: null },
+    stock: 48, stockReserved: 0, lowStockThreshold: 6, sku: 'MYGIN-750-01', active: true, featured: false, badge: null,
+    ratingSum: 5, ratingCount: 1 },
   { slug: 'mygin-pack-amigos', name: 'MyGin — Pack Amigos', type: 'gin',
     shortDesc: '2 Botellas · Ahorra $3.000', longDesc: 'Dos botellas de MyGin.',
     images: ['/assets/images/assets/promo_pack.webp'], price: 32990, currency: 'CLP',
@@ -70,7 +71,7 @@ async function seedUser({ email, password, admin }) {
 
 async function seed() {
   const batch = db.batch();
-  for (const p of products) batch.set(db.collection('products').doc(p.slug), { ...p, ratingSum: 0, ratingCount: 0, createdAt: ts(), updatedAt: ts() }, { merge: true });
+  for (const p of products) batch.set(db.collection('products').doc(p.slug), { ratingSum: 0, ratingCount: 0, ...p, createdAt: ts(), updatedAt: ts() }, { merge: true });
   for (const c of coupons) batch.set(db.collection('coupons').doc(c.code), { ...c, createdAt: ts() }, { merge: true });
 
   // Post de blog (publicado) para los tests de admin blog.
@@ -78,6 +79,18 @@ async function seed() {
     slug: 'gin-tonic-perfecto', title: 'El gin tonic perfecto', excerpt: 'Cómo preparar un gin tonic.',
     content: '# Gin tonic\n\nPasos...', category: 'receta', status: 'published', coverImage: '',
     tags: ['receta'], author: 'MyGin', createdAt: ts(), updatedAt: ts(), publishedAt: ts(),
+  }, { merge: true });
+
+  // Reseñas: una aprobada (visible en el PDP, ya contada) y una pendiente (cola de moderación).
+  batch.set(db.collection('comments').doc('seed-review-approved'), {
+    productId: 'mygin-botella-individual', productSlug: 'mygin-botella-individual', rating: 5,
+    authorName: 'Camila R.', authorEmail: 'camila@test.local', body: 'Excelente gin, muy aromático.',
+    status: 'approved', counted: true, createdAt: ts(), approvedAt: ts(),
+  }, { merge: true });
+  batch.set(db.collection('comments').doc('seed-review-pending'), {
+    productId: 'mygin-botella-individual', productSlug: 'mygin-botella-individual', rating: 4,
+    authorName: 'Diego P.', authorEmail: 'diego@test.local', body: 'Muy bueno, pero caro.',
+    status: 'pending', counted: false, createdAt: ts(),
   }, { merge: true });
 
   // Pedido pagado para que /admin/pedidos no esté vacío.

@@ -179,16 +179,24 @@ indexables por SEO.
 
 ---
 
-## ⬜ Oleada 2 — Dependientes + consolidación
+## 🔄 Oleada 2 — Dependientes + consolidación
 
-### Comentarios / Reseñas con moderación  ⬜  *(necesita A + D)*
-**Feature:** Reseñas de producto y comentarios de blog moderados (Req. 6).
-**Objetivo:** Cliente envía → queda `pending` → admin aprueba → se publica; rating
-agregado en productos.
-- ⬜ Formulario público en producto/post (crea `comments` con `status: 'pending'`).
-- ⬜ `app/admin/comentarios/page.tsx` — cola de moderación.
-- ⬜ `functions/src/comments/onCommentApproved.ts` — actualiza `ratingSum`/`ratingCount`.
-- **Tipos:** `lib/types.comment.ts`.
+### ✅ Reseñas de producto con moderación  *(spec: `docs/superpowers/specs/2026-06-19-resenas-moderacion-design.md`)*
+**Feature:** Reseñas de producto moderadas (Req. 6). Cliente anónimo (nombre+email) envía →
+queda `pending` → admin aprueba → se publica; rating agregado en el producto.
+- ✅ `ReviewForm` (`components/shop/ReviewForm.tsx`) — estrellas 1–5 + nombre/email/texto,
+  `addDoc` a `comments` con `status:'pending'`, `counted:false` (calcado de `ContactForm`).
+- ✅ `app/admin/comentarios/page.tsx` — cola de moderación (Aprobar/Rechazar/Borrar) + nav.
+- ✅ **Agregación al aprobar** (`lib/comments.ts`, enfoque B): transacción client-side
+  (admin autenticado) que suma/resta `ratingSum`/`ratingCount`; flag `counted` =
+  idempotencia. **Sin Cloud Function** (las Functions no están desplegadas — plan Spark).
+- ✅ PDP (`producto/[slug]`) muestra promedio + lista de aprobadas + form; `comments`
+  endurecido en `firestore.rules`; `getApprovedReviews` sin orderBy → sin índice compuesto.
+- ✅ Tipos `lib/types.comment.ts`; seed de comments; `e2e/resenas.spec.ts` (104 e2e verde).
+- ⬜ **Diferido (YAGNI):** comentarios de blog (esquema preparado, no cableado), edición de
+  rating ya aprobado, App Check (va en el endurecimiento de seguridad).
+- ⬜ **Operativo (usuario):** `firebase deploy --only firestore:rules` para publicar las
+  reglas endurecidas de `comments` en el proyecto real.
 
 ### Seguridad (endurecimiento final)  ⬜  *(owner único, va al final)*
 **Feature:** Reglas estrictas, App Check, secretos (Req. no funcionales).

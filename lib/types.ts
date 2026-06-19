@@ -42,7 +42,7 @@ export interface Product {
   badge?: string | null;
   weightGr?: number;
   attributes?: Record<string, string>;
-  /** Rating agregado (actualizado por Function al aprobar reseñas). */
+  /** Rating agregado (lo actualiza la moderación al aprobar/rechazar reseñas; ver lib/comments.ts). */
   ratingSum?: number;
   ratingCount?: number;
   /** Millis (serializados desde el Timestamp de Firestore para cruzar a client). */
