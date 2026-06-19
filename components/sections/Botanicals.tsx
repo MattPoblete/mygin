@@ -14,9 +14,12 @@ function tileBg(img: string, strong: boolean) {
     <>
       <div
         aria-hidden
-        className="absolute z-0"
+        className="absolute inset-0 z-0"
         style={{
-          inset: -16,
+          // inset:0 + borderRadius heredado: el fondo borroso no se sale del tile ni
+          // muestra esquinas cuadradas (iOS Safari no recorta esta capa al border-radius
+          // del padre). Antes estaba en inset:-16, que era justo lo que asomaba puntiagudo.
+          borderRadius: 'inherit',
           backgroundImage: `url(/assets/images/ingredientes/${img}.webp)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -29,6 +32,7 @@ function tileBg(img: string, strong: boolean) {
         aria-hidden
         className="absolute inset-0 z-0"
         style={{
+          borderRadius: 'inherit',
           background: strong
             ? 'linear-gradient(180deg, rgba(8,24,38,.30) 0%, rgba(8,24,38,.62) 45%, rgba(8,24,38,.92) 100%)'
             : 'linear-gradient(180deg, rgba(8,24,38,.45) 0%, rgba(8,24,38,.72) 55%, rgba(8,24,38,.93) 100%)',
@@ -72,10 +76,6 @@ export default function Botanicals() {
                   border: '1px solid rgba(255,255,255,.10)',
                   minHeight: featured ? 320 : 180,
                   padding: featured ? 'var(--sp-2xl)' : 'var(--sp-xl)',
-                  // iOS Safari no recorta el hijo con filter:blur() al border-radius
-                  // salvo que el contenedor tenga su propia capa de composición.
-                  transform: 'translateZ(0)',
-                  isolation: 'isolate',
                 }}
               >
                 {tileBg(b.img, featured)}
