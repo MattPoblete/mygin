@@ -39,7 +39,7 @@ export default function Producto({ products }: { products: Map<string, Product> 
       />
 
       <div className="relative z-10 mx-auto grid grid-cols-1 md:grid-cols-2 gap-12" style={{ maxWidth: 'var(--container)' }}>
-        <div className="md:col-start-2 max-w-xl reveal">
+        <div className="md:col-start-2 max-w-xl reveal [text-shadow:0_1px_12px_#1a3a52,0_0_4px_#1a3a52] md:[text-shadow:none]">
           <SectionTitle tone="dark" eyebrow={p.label} title="MyGin" />
           <div className="flex flex-wrap gap-2.5 mt-3 mb-5">
             {p.badges.map((b, i) => (
