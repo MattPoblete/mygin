@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { listAllPosts, deletePost } from '@/lib/blog';
+import SavedFlash from '@/components/admin/SavedFlash';
 import type { BlogPost, BlogCategory } from '@/lib/types.blog';
 
 const CATEGORY_LABEL: Record<BlogCategory, string> = {
@@ -35,6 +36,7 @@ export default function BlogListPage() {
 
   return (
     <div>
+      <SavedFlash />
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-3xl tracking-tighter">Blog</h1>
         <Link

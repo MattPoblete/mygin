@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProduct, updateProduct, type ProductInput } from '@/lib/products';
 import type { Product, ProductType } from '@/lib/types';
@@ -25,6 +25,24 @@ export default function ProductForm({ product }: { product?: Product }) {
   const isEdit = Boolean(product);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [dirty, setDirty] = useState(false);
+
+  // beforeunload: avisa al salir/cerrar pestaña con cambios sin guardar.
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
+  const leave = () => {
+    if (dirty && !confirm('Tienes cambios sin guardar. ¿Descartarlos?')) return;
+    setDirty(false);
+    router.push('/admin/productos');
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +80,8 @@ export default function ProductForm({ product }: { product?: Product }) {
     try {
       if (isEdit && product) await updateProduct(product.id, payload);
       else await createProduct(payload);
-      router.push('/admin/productos');
+      setDirty(false);
+      router.push('/admin/productos?saved=1');
       router.refresh();
     } catch {
       setError('No se pudo guardar. Verifica tus permisos de admin.');
@@ -75,27 +94,28 @@ export default function ProductForm({ product }: { product?: Product }) {
       <h1 className="font-headline text-3xl tracking-tighter mb-8">
         {isEdit ? 'Editar producto' : 'Nuevo producto'}
       </h1>
-      <form onSubmit={onSubmit} className="space-y-6 max-w-2xl">
-        <Field label="Nombre">
+      <form onSubmit={onSubmit} onChange={() => setDirty(true)} className="space-y-6 max-w-2xl">
+        <Field label="Nombre" required>
           <input name="name" required defaultValue={product?.name ?? ''} className={inputCls} />
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <Field label="Slug (URL)" hint={isEdit ? 'No editable tras crear' : 'Se genera del nombre si lo dejas vacío'}>
-            <input
-              name="slug"
-              disabled={isEdit}
-              defaultValue={product?.slug ?? ''}
-              className={`${inputCls} ${isEdit ? 'opacity-60' : ''}`}
-            />
-          </Field>
+          {isEdit ? (
+            <Field label="Slug (URL)">
+              <LockedValue value={product!.slug} />
+            </Field>
+          ) : (
+            <Field label="Slug (URL)" hint="Se genera del nombre si lo dejas vacío">
+              <input name="slug" defaultValue={product?.slug ?? ''} className={inputCls} />
+            </Field>
+          )}
           <Field label="SKU">
             <input name="sku" defaultValue={product?.sku ?? ''} className={inputCls} />
           </Field>
         </div>
 
-        <Field label="Tipo">
-          <select name="type" defaultValue={product?.type ?? 'gin'} className={inputCls}>
+        <Field label="Tipo" required>
+          <select name="type" required defaultValue={product?.type ?? 'gin'} className={inputCls}>
             {TYPES.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
@@ -123,8 +143,8 @@ export default function ProductForm({ product }: { product?: Product }) {
         </Field>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          <Field label="Precio (CLP)">
-            <input name="price" type="number" min={0} defaultValue={product?.price ?? 0} className={inputCls} />
+          <Field label="Precio (CLP)" required>
+            <input name="price" type="number" min={0} required defaultValue={product?.price ?? 0} className={inputCls} />
           </Field>
           <Field label="Precio antes">
             <input
@@ -135,8 +155,8 @@ export default function ProductForm({ product }: { product?: Product }) {
               className={inputCls}
             />
           </Field>
-          <Field label="Stock">
-            <input name="stock" type="number" min={0} defaultValue={product?.stock ?? 0} className={inputCls} />
+          <Field label="Stock" required>
+            <input name="stock" type="number" min={0} required defaultValue={product?.stock ?? 0} className={inputCls} />
           </Field>
           <Field label="Umbral stock bajo">
             <input
@@ -170,7 +190,7 @@ export default function ProductForm({ product }: { product?: Product }) {
           </button>
           <button
             type="button"
-            onClick={() => router.push('/admin/productos')}
+            onClick={leave}
             className="border border-outline-variant/40 text-secondary px-8 py-3 rounded-lg font-bold uppercase text-xs tracking-widest hover:bg-surface-container-high transition-all"
           >
             Cancelar
@@ -182,17 +202,50 @@ export default function ProductForm({ product }: { product?: Product }) {
 }
 
 const inputCls =
-  'w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2.5 text-on-surface focus:border-primary outline-none';
+  'w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2.5 text-on-surface focus:border-primary';
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  required,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="block text-xs uppercase tracking-widest text-on-surface-variant mb-2">
         {label}
+        {required && <span className="text-error" aria-hidden="true"> *</span>}
         {hint && <span className="normal-case tracking-normal text-on-surface-variant/60"> · {hint}</span>}
       </span>
       {children}
     </label>
+  );
+}
+
+/** Campo de identidad no editable: texto estático + candado + nota. */
+function LockedValue({ value }: { value: string }) {
+  return (
+    <div className="flex items-center gap-2 bg-surface-container border border-outline-variant/20 rounded-lg px-4 py-2.5">
+      <LockIcon />
+      <span className="text-on-surface font-mono text-sm break-all">{value}</span>
+      <span className="ml-auto text-on-surface-variant/70 text-[0.65rem] uppercase tracking-widest whitespace-nowrap">
+        No editable
+      </span>
+    </div>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-on-surface-variant shrink-0">
+      <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2" />
+    </svg>
   );
 }
 
