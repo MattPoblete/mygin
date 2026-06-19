@@ -12,6 +12,8 @@ export default function Hero() {
   const [line1, line2 = ''] = hero.headline.split('\n');
   const accentIdx = hero.accent ? line2.lastIndexOf(hero.accent) : -1;
   const line2Pre = accentIdx >= 0 ? line2.slice(0, accentIdx) : line2;
+  // Texto tras la palabra acentuada (p. ej. la puntuación final) — sin colorear.
+  const line2Post = accentIdx >= 0 ? line2.slice(accentIdx + hero.accent.length) : '';
 
   return (
     <section
@@ -52,6 +54,7 @@ export default function Hero() {
           <br />
           {line2Pre}
           {accentIdx >= 0 && <span style={{ color: 'var(--crimson)' }}>{hero.accent}</span>}
+          {line2Post}
         </h1>
         <p className="mg-tagline mt-5" style={{ fontSize: 'clamp(20px, 3vw, 24px)', color: 'var(--cream)' }}>
           {hero.tagline}

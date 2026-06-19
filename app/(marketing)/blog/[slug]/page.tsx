@@ -68,15 +68,26 @@ export default async function BlogPostPage({
             {CATEGORY_LABEL[post.category]}
           </span>
           <h1 className="font-headline text-4xl md:text-5xl tracking-tighter mt-3">{post.title}</h1>
-          {post.authorName && (
-            <p className="text-on-surface-variant text-sm mt-4">Por {post.authorName}</p>
-          )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-on-surface-variant text-sm mt-4">
+            {post.authorName && <span>Por {post.authorName}</span>}
+            {post.authorName && post.publishedAt && <span aria-hidden="true">·</span>}
+            {post.publishedAt && (
+              <time dateTime={post.publishedAt.toDate().toISOString()}>
+                {new Intl.DateTimeFormat('es-CL', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }).format(post.publishedAt.toDate())}
+              </time>
+            )}
+          </div>
         </header>
 
         {post.coverImage && (
           <div className="rounded-2xl overflow-hidden mb-10 bg-surface-container-high">
+            {/* alt="" — portada decorativa que duplica el <h1> adyacente. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={post.coverImage} alt={post.title} className="w-full object-cover" />
+            <img src={post.coverImage} alt="" className="w-full object-cover" />
           </div>
         )}
 

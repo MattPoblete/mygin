@@ -48,6 +48,16 @@ export default function ContactoPage() {
                 {b.email}
               </a>
             </InfoItem>
+            <InfoItem icon="chat" label="WhatsApp">
+              <a
+                href={b.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-on-surface hover:text-primary transition-colors"
+              >
+                {b.whatsapp}
+              </a>
+            </InfoItem>
             <InfoItem icon="photo_camera" label="Instagram">
               <a
                 href={b.instagramUrl}
