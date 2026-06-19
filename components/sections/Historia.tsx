@@ -36,11 +36,17 @@ export default function Historia() {
 
           {/* Stats */}
           <div className="flex flex-col gap-12">
-            <div className="grid grid-cols-3 gap-8 p-10 bg-surface-container-low rounded-2xl">
+            <div className="grid grid-cols-3 gap-4 sm:gap-8 p-6 sm:p-10 bg-surface-container-low rounded-2xl">
               {h.stats.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="font-headline text-5xl text-primary tracking-tighter">{stat.value}</div>
-                  <div className="text-on-surface-variant text-xs uppercase tracking-widest mt-2">
+                  {/* Fluido: ~30px en móvil estrecho, tope 48px — evita que 2025/100% se encimen. */}
+                  <div
+                    className="font-headline text-primary tracking-tighter leading-none"
+                    style={{ fontSize: 'clamp(1.5rem, 7vw, 3rem)' }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div className="text-on-surface-variant text-[0.65rem] sm:text-xs uppercase tracking-widest mt-2">
                     {stat.label}
                   </div>
                 </div>
