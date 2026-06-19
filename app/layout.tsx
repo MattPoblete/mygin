@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navbar from '@/components/nav/Navbar';
-import Footer from '@/components/nav/Footer';
+import PublicChrome from '@/components/nav/PublicChrome';
 import RevealObserver from '@/components/RevealObserver';
-import AgeGate from '@/components/AgeGate';
 import { CartProvider } from '@/lib/cart/CartProvider';
 import JsonLd from '@/components/seo/JsonLd';
 import { SITE_URL, ORGANIZATION } from '@/lib/seo';
@@ -59,10 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Saltar al contenido
         </a>
         <CartProvider>
-          <AgeGate />
-          <Navbar />
-          <div id="contenido">{children}</div>
-          <Footer />
+          <PublicChrome>{children}</PublicChrome>
           <RevealObserver />
         </CartProvider>
       </body>
