@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { listProducts, deleteProduct } from '@/lib/products';
 import { formatPrice } from '@/lib/cta';
+import SavedFlash from '@/components/admin/SavedFlash';
 import type { Product } from '@/lib/types';
 
 export default function ProductsListPage() {
@@ -30,6 +31,7 @@ export default function ProductsListPage() {
 
   return (
     <div>
+      <SavedFlash />
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-3xl tracking-tighter">Productos</h1>
         <Link

@@ -22,14 +22,17 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   fulfilled: 'Despachado',
 };
 
-const STATUS_COLOR: Record<OrderStatus, string> = {
-  pending: 'text-on-surface-variant',
-  awaiting_payment: 'text-tertiary',
-  paid: 'text-secondary',
-  failed: 'text-error',
-  cancelled: 'text-error',
-  expired: 'text-on-surface-variant',
-  fulfilled: 'text-primary',
+// Chip por estado: fondo + texto + forma (borde/estilo) para distinguir sin
+// depender solo del color. pending↔expired y failed↔cancelled deben verse
+// distintos: se diferencian con borde sólido vs. punteado.
+const STATUS_CHIP: Record<OrderStatus, string> = {
+  pending: 'bg-surface-container-high text-on-surface-variant border border-outline-variant/50',
+  awaiting_payment: 'bg-tertiary/10 text-tertiary border border-tertiary/40',
+  paid: 'bg-secondary/10 text-secondary border border-secondary/40',
+  failed: 'bg-error/10 text-error border border-error/50',
+  cancelled: 'bg-transparent text-error border border-dashed border-error/50',
+  expired: 'bg-transparent text-on-surface-variant border border-dashed border-outline-variant/50',
+  fulfilled: 'bg-primary/10 text-primary border border-primary/40',
 };
 
 export default function OrdersListPage() {
@@ -53,6 +56,10 @@ export default function OrdersListPage() {
       ) : orders.length === 0 ? (
         <p className="text-on-surface-variant text-sm">Aún no hay pedidos.</p>
       ) : (
+        <>
+        <p className="text-on-surface-variant text-xs mb-4">
+          Mostrando los 100 pedidos más recientes.
+        </p>
         <div className="overflow-x-auto border border-outline-variant/20 rounded-xl">
           <table className="w-full text-sm">
             <thead className="bg-surface-container-low text-on-surface-variant">
@@ -89,7 +96,11 @@ export default function OrdersListPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs uppercase tracking-widest ${STATUS_COLOR[o.status] ?? 'text-on-surface-variant'}`}>
+                    <span
+                      className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-widest ${
+                        STATUS_CHIP[o.status] ?? STATUS_CHIP.pending
+                      }`}
+                    >
                       {STATUS_LABEL[o.status] ?? o.status}
                     </span>
                   </td>
@@ -101,6 +112,7 @@ export default function OrdersListPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import { createPost, updatePost, type BlogPostInput } from '@/lib/blog';
@@ -30,6 +30,24 @@ export default function BlogPostForm({ post }: { post?: BlogPost }) {
   const [error, setError] = useState('');
   const [body, setBody] = useState(post?.bodyMarkdown ?? '');
   const [showPreview, setShowPreview] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  // beforeunload: el body markdown vive solo en estado y es fácil de perder.
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
+  const leave = () => {
+    if (dirty && !confirm('Tienes cambios sin guardar. ¿Descartarlos?')) return;
+    setDirty(false);
+    router.push('/admin/blog');
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,7 +89,8 @@ export default function BlogPostForm({ post }: { post?: BlogPost }) {
     try {
       if (isEdit && post) await updatePost(post.id, payload);
       else await createPost(payload);
-      router.push('/admin/blog');
+      setDirty(false);
+      router.push('/admin/blog?saved=1');
       router.refresh();
     } catch {
       setError('No se pudo guardar. Verifica tus permisos de admin.');
@@ -84,22 +103,20 @@ export default function BlogPostForm({ post }: { post?: BlogPost }) {
       <h1 className="font-headline text-3xl tracking-tighter mb-8">
         {isEdit ? 'Editar artículo' : 'Nuevo artículo'}
       </h1>
-      <form onSubmit={onSubmit} className="space-y-6 max-w-2xl">
-        <Field label="Título">
+      <form onSubmit={onSubmit} onChange={() => setDirty(true)} className="space-y-6 max-w-2xl">
+        <Field label="Título" required>
           <input name="title" required defaultValue={post?.title ?? ''} className={inputCls} />
         </Field>
 
-        <Field
-          label="Slug (URL)"
-          hint={isEdit ? 'No editable tras crear' : 'Se genera del título si lo dejas vacío'}
-        >
-          <input
-            name="slug"
-            disabled={isEdit}
-            defaultValue={post?.slug ?? ''}
-            className={`${inputCls} ${isEdit ? 'opacity-60' : ''}`}
-          />
-        </Field>
+        {isEdit ? (
+          <Field label="Slug (URL)">
+            <LockedValue value={post!.slug} />
+          </Field>
+        ) : (
+          <Field label="Slug (URL)" hint="Se genera del título si lo dejas vacío">
+            <input name="slug" defaultValue={post?.slug ?? ''} className={inputCls} />
+          </Field>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <Field label="Categoría">
@@ -161,7 +178,10 @@ export default function BlogPostForm({ post }: { post?: BlogPost }) {
           ) : (
             <textarea
               value={body}
-              onChange={(e) => setBody(e.target.value)}
+              onChange={(e) => {
+                setBody(e.target.value);
+                setDirty(true);
+              }}
               rows={14}
               placeholder="## Subtítulo&#10;&#10;Texto en **Markdown**…"
               className={`${inputCls} font-mono text-sm`}
@@ -199,7 +219,7 @@ export default function BlogPostForm({ post }: { post?: BlogPost }) {
           </button>
           <button
             type="button"
-            onClick={() => router.push('/admin/blog')}
+            onClick={leave}
             className="border border-outline-variant/40 text-secondary px-8 py-3 rounded-lg font-bold uppercase text-xs tracking-widest hover:bg-surface-container-high transition-all"
           >
             Cancelar
@@ -211,24 +231,49 @@ export default function BlogPostForm({ post }: { post?: BlogPost }) {
 }
 
 const inputCls =
-  'w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2.5 text-on-surface focus:border-primary outline-none';
+  'w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2.5 text-on-surface focus:border-primary';
 
 function Field({
   label,
   hint,
+  required,
   children,
 }: {
   label: string;
   hint?: string;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
       <span className="block text-xs uppercase tracking-widest text-on-surface-variant mb-2">
         {label}
+        {required && <span className="text-error" aria-hidden="true"> *</span>}
         {hint && <span className="normal-case tracking-normal text-on-surface-variant/60"> · {hint}</span>}
       </span>
       {children}
     </label>
+  );
+}
+
+/** Campo de identidad no editable: texto estático + candado + nota. */
+function LockedValue({ value }: { value: string }) {
+  return (
+    <div className="flex items-center gap-2 bg-surface-container border border-outline-variant/20 rounded-lg px-4 py-2.5">
+      <LockIcon />
+      <span className="text-on-surface font-mono text-sm break-all">{value}</span>
+      <span className="ml-auto text-on-surface-variant/70 text-[0.65rem] uppercase tracking-widest whitespace-nowrap">
+        No editable
+      </span>
+    </div>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-on-surface-variant shrink-0">
+      <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2" />
+    </svg>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { listCoupons, deleteCoupon } from '@/lib/coupons';
 import { formatPrice } from '@/lib/cta';
+import SavedFlash from '@/components/admin/SavedFlash';
 import type { Coupon } from '@/lib/types.coupon';
 
 const TYPE_LABEL: Record<Coupon['type'], string> = {
@@ -42,6 +43,7 @@ export default function CouponsListPage() {
 
   return (
     <div>
+      <SavedFlash />
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-3xl tracking-tighter">Cupones</h1>
         <Link
