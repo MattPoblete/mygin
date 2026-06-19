@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'MyGin — El gin que se vive.',
   description: DESCRIPTION,
+  icons: { icon: '/assets/favicon.png' },
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
