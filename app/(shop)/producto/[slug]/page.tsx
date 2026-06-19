@@ -119,14 +119,11 @@ export default async function ProductoPage({
             <div className="mt-4 flex items-end gap-3">
               {product.compareAtPrice && product.compareAtPrice > product.price && (
                 <span className="text-base text-on-surface-variant/70 line-through">
-                  ${formatPrice(product.compareAtPrice)}
+                  {formatPrice(product.compareAtPrice)}
                 </span>
               )}
               <span className="font-headline text-3xl text-primary">
-                ${formatPrice(product.price)}
-              </span>
-              <span className="pb-1 text-xs uppercase tracking-widest text-on-surface-variant">
-                {product.currency}
+                {formatPrice(product.price)}
               </span>
             </div>
 
@@ -160,6 +157,22 @@ export default async function ProductoPage({
             <div className="mt-10">
               <AddToCartButton product={product} />
             </div>
+
+            {/* Confianza — despacho, pagos, +18 */}
+            <ul className="mt-6 flex flex-col gap-2 text-sm text-on-surface-variant">
+              <li className="flex items-center gap-2">
+                <Icon name="local_shipping" fill={0} className="text-base text-secondary" />
+                Despacho a todo Chile
+              </li>
+              <li className="flex items-center gap-2">
+                <Icon name="credit_card" fill={0} className="text-base text-secondary" />
+                Pago seguro con tarjeta de débito o crédito
+              </li>
+              <li className="flex items-center gap-2">
+                <Icon name="verified_user" fill={0} className="text-base text-secondary" />
+                Venta exclusiva para mayores de 18 años
+              </li>
+            </ul>
 
             {product.sku && (
               <p className="mt-6 text-xs uppercase tracking-widest text-on-surface-variant/60">

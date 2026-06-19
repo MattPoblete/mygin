@@ -14,7 +14,7 @@ const TYPE_LABEL: Record<Coupon['type'], string> = {
 
 function describeValue(c: Coupon): string {
   if (c.type === 'percent') return `${c.value}%`;
-  if (c.type === 'fixed') return `$${formatPrice(c.value)}`;
+  if (c.type === 'fixed') return formatPrice(c.value);
   return 'Despacho gratis';
 }
 

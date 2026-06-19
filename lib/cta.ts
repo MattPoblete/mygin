@@ -6,7 +6,11 @@ export function resolveCta(cta: Cta): string {
   return cta.href || '#';
 }
 
-/** Precio en CLP con separador de miles, sin decimales. */
+/** Precio en CLP con símbolo, separador de miles y sin decimales: formatPrice(17990) === '$17.990'. */
 export function formatPrice(n: number): string {
-  return n.toLocaleString('es-CL');
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(n);
 }
