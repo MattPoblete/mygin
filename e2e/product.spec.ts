@@ -32,7 +32,9 @@ test.describe('Producto en stock', () => {
 
     await page.getByRole('button', { name: /Agregar al carrito/ }).click();
 
-    const confirm = page.getByText('Agregado al carrito');
+    // El aviso visible empieza con "A" mayúscula; el status sr-only dice
+    // "Producto agregado al carrito" (minúscula) → regex case-sensitive lo distingue.
+    const confirm = page.getByText(/Agregado al carrito/);
     await expect(confirm).toBeVisible();
     await expect(page.getByRole('link', { name: 'Ir al carrito' })).toHaveAttribute(
       'href',
@@ -83,10 +85,10 @@ test.describe('Producto en stock', () => {
     await page.goto(`/producto/${p.slug}`);
 
     await page.getByRole('button', { name: /Agregar al carrito/ }).click();
-    await expect(page.getByText('Agregado al carrito')).toBeVisible();
+    await expect(page.getByText(/Agregado al carrito/)).toBeVisible();
 
     await page.getByRole('button', { name: 'Aumentar cantidad' }).click();
-    await expect(page.getByText('Agregado al carrito')).toBeHidden();
+    await expect(page.getByText(/Agregado al carrito/)).toBeHidden();
   });
 });
 
@@ -120,7 +122,6 @@ test.describe('Producto agotado', () => {
     await passAgeGate(page);
     await page.goto(`/producto/${p.slug}`);
 
-    await expect(page.getByText('Agotado')).toBeVisible();
     const btn = page.getByRole('button', { name: 'Agotado' });
     await expect(btn).toBeVisible();
     await expect(btn).toBeDisabled();

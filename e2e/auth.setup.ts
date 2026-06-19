@@ -15,5 +15,6 @@ setup('authenticate admin', async ({ page }) => {
   // El dashboard de admin debe cargar (claim admin presente).
   await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible({ timeout: 15_000 });
 
-  await page.context().storageState({ path: ADMIN_STORAGE });
+  // Firebase Auth persiste la sesión en IndexedDB → hay que incluirlo en el storageState.
+  await page.context().storageState({ path: ADMIN_STORAGE, indexedDB: true });
 });

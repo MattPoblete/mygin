@@ -25,7 +25,7 @@ test.describe('Carrito vacío', () => {
     await passAgeGate(page);
     await page.goto('/carrito');
 
-    await expect(page.getByRole('heading', { name: 'Tu carrito está vacío' })).toBeVisible();
+    await expect(page.getByText('Tu carrito está vacío')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Ir a la tienda' })).toHaveAttribute(
       'href',
       '/tienda',
@@ -156,7 +156,7 @@ test.describe('Carrito con ítems', () => {
     await page.goto('/carrito');
 
     await page.getByRole('button', { name: `Eliminar ${PRODUCTS.inStock.name}` }).click();
-    await expect(page.getByRole('heading', { name: 'Tu carrito está vacío' })).toBeVisible();
+    await expect(page.getByText('Tu carrito está vacío')).toBeVisible();
   });
 
   test('"Vaciar carrito" limpia todo y quita el badge', async ({ page }) => {
@@ -181,7 +181,7 @@ test.describe('Carrito con ítems', () => {
 
     await page.getByRole('button', { name: 'Vaciar carrito' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Tu carrito está vacío' })).toBeVisible();
+    await expect(page.getByText('Tu carrito está vacío')).toBeVisible();
     await expect(page.getByRole('link', { name: /Carrito, \d+ producto/ })).toHaveCount(0);
   });
 });

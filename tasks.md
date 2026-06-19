@@ -9,6 +9,26 @@ paralelización" en el plan.
 
 ---
 
+## ✅ Tests E2E (Playwright + emulador Firebase) — todos los flujos
+
+Cobertura E2E del ecommerce contra el **emulador Firebase** (datos sembrados, pago mock),
+escrita en **5 worktrees paralelos** y puesta en verde de forma central. **100 tests passing.**
+
+- ✅ **Fundación** — `@playwright/test` + `firebase-tools` (devDeps); `client.ts`/`admin.ts`
+  conectan al emulador gateados por env; `firebase.test.json` (solo firestore+auth);
+  `scripts/seed-emulator.mjs` (productos in-stock/featured/low-stock/agotado, cupones, pedido,
+  post, usuarios admin/no-admin) + `scripts/run-e2e.mjs` (usa JRE local `.jdk/` si existe).
+- ✅ **Suite** (`e2e/*.spec.ts`): age-gate, navbar, landing, catálogo, PDP, carrito, checkout,
+  pago (popup mock aceptar/rechazar/cerrar), confirmación, contacto, admin (auth + CRUD
+  productos/cupones/blog + pedidos). Auth admin vía `storageState` (con `indexedDB:true`).
+- ✅ **Bug encontrado y corregido** — al pagar, `clear()` disparaba el redirect "carrito vacío
+  → /tienda" ganándole al push a la confirmación; ahora un `paidRef` evita la carrera y el
+  cliente llega a `/checkout/confirmacion/{id}`.
+- **Correr:** `pnpm test:e2e` (requiere Java 21+; hay un JRE local en `.jdk/`).
+- ⬜ Operativo: instalar Java 21+ system-wide o conservar `.jdk/` local; opcional integrar en CI.
+
+---
+
 ## ✅ Auditoría UX + remediación (filtro ponytail, worktrees paralelos)
 
 Auditoría completa (`UX-AUDIT.md`, 8 superficies con skill `ux-designer`) → triaje ponytail

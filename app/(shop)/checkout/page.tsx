@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartProvider';
@@ -71,9 +71,13 @@ export default function CheckoutPage() {
   const [couponState, setCouponState] = useState<ValidateCouponResult | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
 
-  // Redirige a la tienda si el carrito está vacío (tras hidratar).
+  // Tras pagar vaciamos el carrito y navegamos a la confirmación; este flag evita que
+  // el redirect "carrito vacío → /tienda" gane la carrera y desvíe al cliente.
+  const paidRef = useRef(false);
+
+  // Redirige a la tienda si el carrito está vacío (tras hidratar), salvo que acabemos de pagar.
   useEffect(() => {
-    if (hydrated && items.length === 0) {
+    if (hydrated && items.length === 0 && !paidRef.current) {
       router.replace('/tienda');
     }
   }, [hydrated, items.length, router]);
@@ -187,6 +191,7 @@ export default function CheckoutPage() {
       settled = true;
       cleanup();
       if (d.status === 'paid') {
+        paidRef.current = true;
         clear();
         router.push(`/checkout/confirmacion/${orderId}`);
       } else {

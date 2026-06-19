@@ -47,10 +47,10 @@ test.describe('Admin · Blog · crear / eliminar', () => {
     await passAgeGate(page);
     await page.goto('/admin/blog/nuevo');
 
-    await page.getByLabel('Título', { exact: true }).fill(title);
+    await page.getByRole('textbox', { name: 'Título', exact: true }).fill(title);
     await page.getByLabel('Slug (URL)').fill(slug);
-    await page.getByLabel('Categoría', { exact: true }).selectOption('articulo');
-    await page.getByLabel('Estado', { exact: true }).selectOption('published');
+    await page.getByRole('combobox', { name: 'Categoría' }).selectOption('articulo');
+    await page.getByRole('combobox', { name: 'Estado' }).selectOption('published');
     // El cuerpo Markdown es un <textarea> sin <label> asociado → se ubica por placeholder.
     await page.getByPlaceholder(/Subtítulo/).fill('## Hola\n\nCuerpo de prueba.');
 
@@ -67,9 +67,9 @@ test.describe('Admin · Blog · crear / eliminar', () => {
 
     await passAgeGate(page);
     await page.goto('/admin/blog/nuevo');
-    await page.getByLabel('Título', { exact: true }).fill(title);
+    await page.getByRole('textbox', { name: 'Título', exact: true }).fill(title);
     await page.getByLabel('Slug (URL)').fill(slug);
-    await page.getByLabel('Estado', { exact: true }).selectOption('draft');
+    await page.getByRole('combobox', { name: 'Estado' }).selectOption('draft');
     await page.getByPlaceholder(/Subtítulo/).fill('Borrador.');
     await page.getByRole('button', { name: 'Crear artículo' }).click();
 
@@ -83,7 +83,7 @@ test.describe('Admin · Blog · crear / eliminar', () => {
 
     await passAgeGate(page);
     await page.goto('/admin/blog/nuevo');
-    await page.getByLabel('Título', { exact: true }).fill(title);
+    await page.getByRole('textbox', { name: 'Título', exact: true }).fill(title);
     await page.getByLabel('Slug (URL)').fill(slug);
     await page.getByPlaceholder(/Subtítulo/).fill('Para eliminar.');
     await page.getByRole('button', { name: 'Crear artículo' }).click();

@@ -48,10 +48,12 @@ test.describe('Checkout — acceso y carrito', () => {
   test('muestra el formulario y el resumen con carrito sembrado', async ({ page }) => {
     await gotoCheckout(page);
     await expect(page.getByRole('heading', { name: /Finalizar compra/ })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Resumen/ })).toBeVisible();
-    await expect(page.getByText('Despacho')).toBeVisible();
-    await expect(page.getByText('Total', { exact: true })).toBeVisible();
-    await expect(page.getByText(/IVA incluido/)).toBeVisible();
+    const summary = page.getByRole('complementary');
+    await expect(summary.getByRole('heading', { name: /Resumen/ })).toBeVisible();
+    // "Despacho" aparece varias veces (legend, notas, resumen); se acota al resumen.
+    await expect(summary.getByText('Despacho', { exact: true })).toBeVisible();
+    await expect(summary.getByText('Total', { exact: true })).toBeVisible();
+    await expect(summary.getByText(/IVA incluido/)).toBeVisible();
   });
 
   test('el botón Pagar muestra el total estimado (subtotal + despacho)', async ({ page }) => {
@@ -72,10 +74,13 @@ test.describe('Checkout — validación de campos', () => {
 
     await page.getByRole('button', { name: /Pagar/ }).click();
 
-    // Permanece en el checkout (no abre pago ni navega).
+    // El form usa validación nativa (los inputs son `required`), así que el submit
+    // vacío es bloqueado por el navegador antes de llegar al handler de React: no
+    // navega y el primer campo requerido queda inválido/enfocado.
     await expect(page).toHaveURL(/\/checkout$/);
-    await expect(page.getByText('Ingresa tu nombre.')).toBeVisible();
-    await expect(page.getByLabel('Nombre completo')).toHaveAttribute('aria-invalid', 'true');
+    const nombre = page.getByLabel('Nombre completo');
+    await expect(nombre).toBeFocused();
+    await expect(nombre).toHaveJSProperty('validity.valid', false);
   });
 
   test('enfoca el primer campo inválido (Nombre) al enviar vacío', async ({ page }) => {

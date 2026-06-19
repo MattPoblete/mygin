@@ -36,20 +36,22 @@ async function submitAndGetPopup(page: Page) {
   const popup = await popupPromise;
   await popup.waitForLoadState();
   await expect(popup).toHaveURL(/\/checkout\/mock\?orderId=/);
-  return popup;
+  const orderId = new URL(popup.url()).searchParams.get('orderId') ?? '';
+  expect(orderId).not.toBe('');
+  return { popup, orderId };
 }
 
 test.describe('Pago mock — apertura del popup', () => {
   test('enviar el formulario válido abre el popup /checkout/mock', async ({ page }) => {
     await gotoCheckout(page);
-    const popup = await submitAndGetPopup(page);
+    const { popup } = await submitAndGetPopup(page);
     await expect(popup.getByRole('button', { name: 'Aceptar pago' })).toBeVisible();
     await expect(popup.getByRole('button', { name: 'Rechazar pago' })).toBeVisible();
   });
 
   test('el popup muestra el total del pedido', async ({ page }) => {
     await gotoCheckout(page);
-    const popup = await submitAndGetPopup(page);
+    const { popup } = await submitAndGetPopup(page);
     // Total con despacho incluido (server-side); basta con que muestre un monto en CLP.
     await expect(popup.getByText(/\$\d/)).toBeVisible();
     await expect(popup.getByText(/Pago simulado/)).toBeVisible();
@@ -57,14 +59,14 @@ test.describe('Pago mock — apertura del popup', () => {
 });
 
 test.describe('Pago mock — aceptar (happy path)', () => {
-  test('aceptar el pago navega a confirmación y muestra éxito', async ({ page }) => {
+  test('aceptar el pago navega a la confirmación y muestra éxito', async ({ page }) => {
     await gotoCheckout(page);
-    const popup = await submitAndGetPopup(page);
+    const { popup, orderId } = await submitAndGetPopup(page);
 
     await popup.getByRole('button', { name: 'Aceptar pago' }).click();
 
-    // El opener navega a la confirmación.
-    await page.waitForURL(/\/checkout\/confirmacion\//);
+    // El opener navega a la confirmación del pedido pagado.
+    await page.waitForURL(new RegExp(`/checkout/confirmacion/${orderId}`));
     await expect(
       page.getByRole('heading', { name: /Compra confirmada|¡Compra/ }),
     ).toBeVisible();
@@ -73,7 +75,7 @@ test.describe('Pago mock — aceptar (happy path)', () => {
 
   test('tras pagar, el carrito queda vacío (badge del navbar desaparece)', async ({ page }) => {
     await gotoCheckout(page);
-    const popup = await submitAndGetPopup(page);
+    const { popup } = await submitAndGetPopup(page);
     await popup.getByRole('button', { name: 'Aceptar pago' }).click();
     await page.waitForURL(/\/checkout\/confirmacion\//);
 
@@ -98,13 +100,14 @@ test.describe('Pago mock — aceptar (happy path)', () => {
 test.describe('Pago mock — rechazar', () => {
   test('rechazar el pago vuelve al form con aviso y permite reintentar', async ({ page }) => {
     await gotoCheckout(page);
-    const popup = await submitAndGetPopup(page);
+    const { popup } = await submitAndGetPopup(page);
 
     await popup.getByRole('button', { name: 'Rechazar pago' }).click();
 
     // Sigue en el checkout (no navega a confirmación).
     await expect(page).toHaveURL(/\/checkout$/);
-    await expect(page.getByRole('alert')).toContainText(/no se completó|pago/i);
+    // <p role="alert"> del form; se acota para excluir el route-announcer de Next.
+    await expect(page.locator('p[role="alert"]')).toContainText(/no se completó|pago/i);
     // El botón vuelve a estar disponible como "Reintentar pago".
     await expect(page.getByRole('button', { name: /Reintentar pago/ })).toBeEnabled();
   });
@@ -113,13 +116,13 @@ test.describe('Pago mock — rechazar', () => {
 test.describe('Pago mock — popup cerrado sin actuar', () => {
   test('cerrar el popup muestra aviso de falta de confirmación y no navega', async ({ page }) => {
     await gotoCheckout(page);
-    const popup = await submitAndGetPopup(page);
+    const { popup } = await submitAndGetPopup(page);
 
     await popup.close();
 
     // No navega a confirmación; sigue en el checkout.
     await expect(page).toHaveURL(/\/checkout$/);
-    await expect(page.getByRole('alert')).toContainText(/No recibimos confirmación/);
+    await expect(page.locator('p[role="alert"]')).toContainText(/No recibimos confirmación/);
     await expect(page.getByRole('button', { name: /Reintentar pago/ })).toBeEnabled();
   });
 });
@@ -133,9 +136,9 @@ test.describe('Confirmación — directa por id', () => {
 
   test('una orden pagada (vía aceptar) muestra confirmación con detalle', async ({ page }) => {
     await gotoCheckout(page);
-    const popup = await submitAndGetPopup(page);
+    const { popup, orderId } = await submitAndGetPopup(page);
     await popup.getByRole('button', { name: 'Aceptar pago' }).click();
-    await page.waitForURL(/\/checkout\/confirmacion\//);
+    await page.waitForURL(new RegExp(`/checkout/confirmacion/${orderId}`));
 
     await expect(page.getByText('Subtotal')).toBeVisible();
     await expect(page.getByText('Despacho')).toBeVisible();

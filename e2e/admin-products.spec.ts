@@ -21,9 +21,12 @@ test.describe('Admin · Dashboard', () => {
     await page.goto('/admin');
 
     await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
-    await expect(page.getByText('Productos', { exact: true })).toBeVisible();
-    await expect(page.getByText('Activos', { exact: true })).toBeVisible();
-    await expect(page.getByText('Stock bajo', { exact: true })).toBeVisible();
+    // Las etiquetas de las tarjetas de estadísticas viven en <main> (el nav lateral
+    // también tiene un enlace "Productos").
+    const main = page.getByRole('main');
+    await expect(main.getByText('Productos', { exact: true })).toBeVisible();
+    await expect(main.getByText('Activos', { exact: true })).toBeVisible();
+    await expect(main.getByText('Stock bajo', { exact: true })).toBeVisible();
   });
 
   test('enlaza a gestionar productos y nuevo producto', async ({ page }) => {
@@ -85,13 +88,15 @@ test.describe('Admin · Productos · crear / editar / eliminar', () => {
     await page.goto('/admin/productos/nuevo');
 
     const name = `Producto E2E ${Date.now()}`;
-    await page.getByLabel('Nombre', { exact: true }).fill(name);
+    // Los labels requeridos llevan un " *" visible (aria-hidden), por eso getByLabel
+    // exact no calza; se usa el accessible name vía role.
+    await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill(name);
     await page.getByLabel('Slug (URL)').fill(UNIQUE);
     await page.getByLabel('SKU').fill('E2E-SKU-1');
-    await page.getByLabel('Tipo', { exact: true }).selectOption('gin');
+    await page.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('gin');
     await page.getByLabel('Descripción corta').fill('Creado por E2E');
-    await page.getByLabel('Precio (CLP)').fill('12990');
-    await page.getByLabel('Stock', { exact: true }).fill('25');
+    await page.getByRole('spinbutton', { name: 'Precio (CLP)', exact: true }).fill('12990');
+    await page.getByRole('spinbutton', { name: 'Stock', exact: true }).fill('25');
     // "Activo" ya viene marcado por defecto; lo dejamos así.
 
     await page.getByRole('button', { name: 'Crear producto' }).click();
@@ -126,10 +131,10 @@ test.describe('Admin · Productos · crear / editar / eliminar', () => {
 
     await passAgeGate(page);
     await page.goto('/admin/productos/nuevo');
-    await page.getByLabel('Nombre', { exact: true }).fill(name);
+    await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill(name);
     await page.getByLabel('Slug (URL)').fill(slug);
-    await page.getByLabel('Precio (CLP)').fill('9990');
-    await page.getByLabel('Stock', { exact: true }).fill('5');
+    await page.getByRole('spinbutton', { name: 'Precio (CLP)', exact: true }).fill('9990');
+    await page.getByRole('spinbutton', { name: 'Stock', exact: true }).fill('5');
     await page.getByRole('button', { name: 'Crear producto' }).click();
 
     const row = page.getByRole('row', { name: new RegExp(name) });

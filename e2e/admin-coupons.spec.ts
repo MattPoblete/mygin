@@ -37,10 +37,10 @@ test.describe('Admin · Cupones · crear / eliminar', () => {
     await passAgeGate(page);
     await page.goto('/admin/cupones/nuevo');
 
-    await page.getByLabel('Código').fill(code);
-    await page.getByLabel('Tipo', { exact: true }).selectOption('percent');
+    await page.getByRole('textbox', { name: 'Código' }).fill(code);
+    await page.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('percent');
     // Para tipo "percent" el campo de valor se etiqueta "Valor (%)".
-    await page.getByLabel('Valor (%)').fill('15');
+    await page.getByRole('spinbutton', { name: 'Valor (%)', exact: true }).fill('15');
     // "Activo" ya viene marcado por defecto.
 
     await page.getByRole('button', { name: 'Crear cupón' }).click();
@@ -58,9 +58,9 @@ test.describe('Admin · Cupones · crear / eliminar', () => {
     await passAgeGate(page);
     await page.goto('/admin/cupones/nuevo');
 
-    await page.getByLabel('Código').fill(code);
-    await page.getByLabel('Tipo', { exact: true }).selectOption('percent');
-    await page.getByLabel('Valor (%)').fill('10');
+    await page.getByRole('textbox', { name: 'Código' }).fill(code);
+    await page.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('percent');
+    await page.getByRole('spinbutton', { name: 'Valor (%)', exact: true }).fill('10');
     // NOTA: el CouponForm no valida que Vence > Vigente desde, así que aunque la
     // fecha de vencimiento sea anterior, el cupón se crea igual (no hay error).
     await page.getByLabel('Vigente desde (opcional)').fill('2030-06-01');
@@ -78,9 +78,9 @@ test.describe('Admin · Cupones · crear / eliminar', () => {
 
     await passAgeGate(page);
     await page.goto('/admin/cupones/nuevo');
-    await page.getByLabel('Código').fill(code);
-    await page.getByLabel('Tipo', { exact: true }).selectOption('percent');
-    await page.getByLabel('Valor (%)').fill('5');
+    await page.getByRole('textbox', { name: 'Código' }).fill(code);
+    await page.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('percent');
+    await page.getByRole('spinbutton', { name: 'Valor (%)', exact: true }).fill('5');
     await page.getByRole('button', { name: 'Crear cupón' }).click();
 
     const row = page.getByRole('row', { name: new RegExp(code) });
@@ -97,8 +97,8 @@ test.describe('Admin · Cupones · crear / eliminar', () => {
 
     await passAgeGate(page);
     await page.goto('/admin/cupones/nuevo');
-    await page.getByLabel('Código').fill(code);
-    await page.getByLabel('Tipo', { exact: true }).selectOption('free_shipping');
+    await page.getByRole('textbox', { name: 'Código' }).fill(code);
+    await page.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('free_shipping');
     await page.getByRole('button', { name: 'Crear cupón' }).click();
 
     await expect(page).toHaveURL(/\/admin\/cupones/);

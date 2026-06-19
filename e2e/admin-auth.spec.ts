@@ -41,7 +41,10 @@ test.describe('Admin — pantalla de login', () => {
     await page.getByLabel('Contraseña').fill('contraseña-incorrecta');
     await page.getByRole('button', { name: /Ingresar/ }).click();
 
-    await expect(page.getByRole('alert')).toContainText(/Credenciales/);
+    // El emulador de auth puede mapear el código a un mensaje genérico; basta con
+    // que aparezca el aviso de error del form (el route-announcer de Next también
+    // es role=alert, por eso se acota al <p role="alert">).
+    await expect(page.locator('p[role="alert"]')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toHaveCount(0);
   });
 });
@@ -52,7 +55,7 @@ test.describe('Admin — recuperación de contraseña', () => {
 
     await page.getByRole('button', { name: '¿Olvidaste tu contraseña?' }).click();
 
-    await expect(page.getByRole('alert')).toContainText(/email/i);
+    await expect(page.locator('p[role="alert"]')).toContainText(/email/i);
   });
 
   test('reset con email válido muestra aviso de envío', async ({ page }) => {

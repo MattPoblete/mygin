@@ -28,14 +28,18 @@ test.describe('Contacto — validación', () => {
     await page.getByRole('button', { name: 'Enviar mensaje' }).click();
 
     // Errores por campo (role=alert) + aria-invalid en cada input requerido.
-    const alerts = page.getByRole('alert');
+    // Se acota al <form> para excluir el route-announcer de Next (role=alert global).
+    const alerts = page.locator('form').getByRole('alert');
     await expect(alerts).toHaveCount(3);
+    await expect(alerts.nth(0)).toHaveText('Ingresa tu nombre.');
+    await expect(alerts.nth(1)).toHaveText('Ingresa tu correo.');
+    await expect(alerts.nth(2)).toHaveText('Cuéntanos en qué te podemos ayudar.');
     await expect(page.getByLabel('Nombre')).toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByLabel('Correo')).toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByLabel('Mensaje')).toHaveAttribute('aria-invalid', 'true');
 
     // No navega a éxito.
-    await expect(page.getByRole('heading', { name: '¡Mensaje enviado!' })).toHaveCount(0);
+    await expect(page.getByText('¡Mensaje enviado!')).toHaveCount(0);
   });
 
   test('enfoca el primer campo inválido (Nombre)', async ({ page }) => {
@@ -59,7 +63,7 @@ test.describe('Contacto — validación', () => {
     await expect(page.getByLabel('Correo')).toBeFocused();
     await expect(page.getByLabel('Nombre')).not.toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByLabel('Mensaje')).not.toHaveAttribute('aria-invalid', 'true');
-    await expect(page.getByRole('heading', { name: '¡Mensaje enviado!' })).toHaveCount(0);
+    await expect(page.getByText('¡Mensaje enviado!')).toHaveCount(0);
   });
 
   test('error de correo por blur aparece sin enviar', async ({ page }) => {
@@ -69,7 +73,7 @@ test.describe('Contacto — validación', () => {
     await page.getByLabel('Correo').blur();
 
     await expect(page.getByLabel('Correo')).toHaveAttribute('aria-invalid', 'true');
-    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.locator('form').getByRole('alert')).toHaveText('Ingresa un correo válido.');
   });
 });
 
@@ -83,7 +87,7 @@ test.describe('Contacto — envío exitoso', () => {
 
     await page.getByRole('button', { name: 'Enviar mensaje' }).click();
 
-    await expect(page.getByRole('heading', { name: '¡Mensaje enviado!' })).toBeVisible();
+    await expect(page.getByText('¡Mensaje enviado!')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Enviar otro mensaje' })).toBeVisible();
   });
 
@@ -99,7 +103,7 @@ test.describe('Contacto — envío exitoso', () => {
 
     await page.getByRole('button', { name: 'Enviar mensaje' }).click();
 
-    await expect(page.getByRole('heading', { name: '¡Mensaje enviado!' })).toBeVisible();
+    await expect(page.getByText('¡Mensaje enviado!')).toBeVisible();
   });
 
   test('"Enviar otro mensaje" resetea y vuelve al formulario vacío', async ({ page }) => {
@@ -110,7 +114,7 @@ test.describe('Contacto — envío exitoso', () => {
     await page.getByLabel('Mensaje').fill(VALID.message);
     await page.getByRole('button', { name: 'Enviar mensaje' }).click();
 
-    await expect(page.getByRole('heading', { name: '¡Mensaje enviado!' })).toBeVisible();
+    await expect(page.getByText('¡Mensaje enviado!')).toBeVisible();
 
     await page.getByRole('button', { name: 'Enviar otro mensaje' }).click();
 
