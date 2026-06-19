@@ -72,6 +72,10 @@ export default function Botanicals() {
                   border: '1px solid rgba(255,255,255,.10)',
                   minHeight: featured ? 320 : 180,
                   padding: featured ? 'var(--sp-2xl)' : 'var(--sp-xl)',
+                  // iOS Safari no recorta el hijo con filter:blur() al border-radius
+                  // salvo que el contenedor tenga su propia capa de composición.
+                  transform: 'translateZ(0)',
+                  isolation: 'isolate',
                 }}
               >
                 {tileBg(b.img, featured)}
