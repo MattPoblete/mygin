@@ -104,7 +104,7 @@ function RetornoInner() {
             <p className="mt-4 text-on-surface-variant">
               Gracias por tu compra. Tu pedido <span className="text-on-surface">{order.orderId}</span> está pagado.
             </p>
-            <p className="mt-2 font-headline text-2xl text-on-surface">Total: ${formatPrice(order.total)}</p>
+            <p className="mt-2 font-headline text-2xl text-on-surface">Total: {formatPrice(order.total)}</p>
             <Link href={`/checkout/confirmacion/${order.orderId}`} className="btn-primary mt-8 inline-block">
               Ver confirmación
             </Link>

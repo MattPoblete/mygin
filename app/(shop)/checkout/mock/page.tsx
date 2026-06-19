@@ -88,7 +88,7 @@ function MockInner() {
           <>
             <div className="mt-6 space-y-1">
               <p className="text-xs uppercase tracking-widest text-on-surface-variant">Pedido {order.orderId}</p>
-              <p className="font-headline text-4xl text-on-surface">${formatPrice(order.total)}</p>
+              <p className="font-headline text-4xl text-on-surface">{formatPrice(order.total)}</p>
               <p className="text-xs text-on-surface-variant">
                 {order.items.reduce((n, i) => n + i.qty, 0)} producto(s) · despacho incluido
               </p>

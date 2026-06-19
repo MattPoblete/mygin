@@ -232,6 +232,13 @@
 .btn-outline:hover { background: var(--crimson); color: var(--white); }
 .btn-outline:active { box-shadow: var(--shadow-inset); transform: translateY(1px); }
 
+/* ── AgeGate: fondo difuminado tras el modal +18 ────────────── */
+.age-gate::backdrop {
+  background: rgba(8, 24, 38, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 /* ── Scroll reveal (usado por <RevealObserver>) ─────────────── */
 .reveal {
   opacity: 0;

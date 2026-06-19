@@ -72,7 +72,7 @@ export default function ConfirmacionPage({ params }: { params: Promise<{ orderId
               {order.items.map((i) => (
                 <li key={i.productId} className="flex justify-between gap-2 py-3 text-sm">
                   <span className="text-on-surface">{i.qty}× {i.name}</span>
-                  <span className="tabular-nums text-on-surface-variant">${formatPrice(i.unitPrice * i.qty)}</span>
+                  <span className="tabular-nums text-on-surface-variant">{formatPrice(i.unitPrice * i.qty)}</span>
                 </li>
               ))}
             </ul>
@@ -80,21 +80,21 @@ export default function ConfirmacionPage({ params }: { params: Promise<{ orderId
             <div className="mt-6 space-y-2 text-sm">
               <div className="flex justify-between text-on-surface-variant">
                 <span>Subtotal</span>
-                <span className="tabular-nums">${formatPrice(order.subtotal)}</span>
+                <span className="tabular-nums">{formatPrice(order.subtotal)}</span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-secondary">
                   <span>Descuento{order.discountCode ? ` (${order.discountCode})` : ''}</span>
-                  <span className="tabular-nums">-${formatPrice(order.discount)}</span>
+                  <span className="tabular-nums">-{formatPrice(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-on-surface-variant">
                 <span>Despacho</span>
-                <span className="tabular-nums">${formatPrice(order.shipping)}</span>
+                <span className="tabular-nums">{formatPrice(order.shipping)}</span>
               </div>
               <div className="flex justify-between items-center border-t border-outline-variant/20 pt-3">
                 <span className="text-on-surface">Total</span>
-                <span className="font-headline text-2xl text-primary">${formatPrice(order.total)}</span>
+                <span className="font-headline text-2xl text-primary">{formatPrice(order.total)}</span>
               </div>
             </div>
 

@@ -337,7 +337,7 @@ export default function CheckoutPage() {
                   ? 'Abriendo el pago…'
                   : payNotice
                     ? 'Reintentar pago'
-                    : `Pagar $${formatPrice(estimatedTotal)}`}
+                    : `Pagar ${formatPrice(estimatedTotal)}`}
             </button>
             <p className="text-xs text-on-surface-variant/70 text-center">
               {waiting
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
               {items.map((i) => (
                 <li key={i.productId} className="flex justify-between gap-2 text-on-surface-variant">
                   <span>{i.qty}× {i.name}</span>
-                  <span className="tabular-nums">${formatPrice(i.unitPrice * i.qty)}</span>
+                  <span className="tabular-nums">{formatPrice(i.unitPrice * i.qty)}</span>
                 </li>
               ))}
             </ul>
@@ -385,7 +385,7 @@ export default function CheckoutPage() {
               {couponState && (
                 <p className={`mt-2 text-xs ${couponState.valid ? 'text-secondary' : 'text-error'}`}>
                   {couponState.valid
-                    ? `Cupón aplicado: -$${formatPrice(couponState.discount ?? 0)}`
+                    ? `Cupón aplicado: -${formatPrice(couponState.discount ?? 0)}`
                     : couponState.reason}
                 </p>
               )}
@@ -394,23 +394,23 @@ export default function CheckoutPage() {
             <div className="mt-4 border-t border-outline-variant/20 pt-4 space-y-2 text-sm">
               <div className="flex justify-between text-on-surface-variant">
                 <span>{count} {count === 1 ? 'producto' : 'productos'}</span>
-                <span className="tabular-nums">${formatPrice(subtotal)}</span>
+                <span className="tabular-nums">{formatPrice(subtotal)}</span>
               </div>
               {appliedDiscount > 0 && (
                 <div className="flex justify-between text-secondary">
                   <span>Descuento</span>
-                  <span className="tabular-nums">-${formatPrice(appliedDiscount)}</span>
+                  <span className="tabular-nums">-{formatPrice(appliedDiscount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-on-surface-variant">
                 <span>Despacho</span>
                 <span className="tabular-nums">
-                  {estimatedShipping === 0 ? 'Gratis' : `$${formatPrice(estimatedShipping)}`}
+                  {estimatedShipping === 0 ? 'Gratis' : formatPrice(estimatedShipping)}
                 </span>
               </div>
               <div className="flex justify-between items-center border-t border-outline-variant/20 pt-3">
                 <span className="text-on-surface">Total</span>
-                <span className="font-headline text-2xl text-primary">${formatPrice(estimatedTotal)}</span>
+                <span className="font-headline text-2xl text-primary">{formatPrice(estimatedTotal)}</span>
               </div>
               <p className="text-xs text-on-surface-variant/70">
                 IVA incluido. Despacho según comuna; el total final se confirma en el pago.

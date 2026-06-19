@@ -82,7 +82,7 @@ export default function CarritoPage() {
                       </button>
                     </div>
                     <span className="text-sm text-on-surface-variant">
-                      ${formatPrice(item.unitPrice)} c/u
+                      {formatPrice(item.unitPrice)} c/u
                     </span>
                     <div className="mt-auto flex items-center justify-between gap-2">
                       <QtyStepper
@@ -91,7 +91,7 @@ export default function CarritoPage() {
                         min={1}
                       />
                       <span className="font-headline text-base text-primary">
-                        ${formatPrice(item.unitPrice * item.qty)}
+                        {formatPrice(item.unitPrice * item.qty)}
                       </span>
                     </div>
                   </div>
@@ -107,15 +107,15 @@ export default function CarritoPage() {
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-outline-variant/20 pt-4 text-sm text-on-surface-variant">
                 <span>Subtotal</span>
-                <span className="tabular-nums">${formatPrice(subtotal)}</span>
+                <span className="tabular-nums">{formatPrice(subtotal)}</span>
               </div>
               <div className="mt-2 flex items-center justify-between text-sm text-on-surface-variant">
                 <span>Despacho</span>
-                <span className="tabular-nums">${formatPrice(SHIPPING_FLAT_CLP)}</span>
+                <span className="tabular-nums">{formatPrice(SHIPPING_FLAT_CLP)}</span>
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-outline-variant/20 pt-4">
                 <span className="text-on-surface">Total</span>
-                <span className="font-headline text-2xl text-primary">${formatPrice(subtotal + SHIPPING_FLAT_CLP)}</span>
+                <span className="font-headline text-2xl text-primary">{formatPrice(subtotal + SHIPPING_FLAT_CLP)}</span>
               </div>
               <p className="mt-2 text-xs text-on-surface-variant/70">
                 IVA incluido. El total final se confirma en el pago.

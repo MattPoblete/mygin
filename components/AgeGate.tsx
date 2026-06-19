@@ -41,6 +41,7 @@ export default function AgeGate() {
   return (
     <dialog
       ref={dialogRef}
+      className="age-gate"
       aria-labelledby="age-gate-title"
       // El usuario debe responder; Escape no cierra la barrera legal.
       onCancel={(e) => e.preventDefault()}
@@ -60,7 +61,7 @@ export default function AgeGate() {
       <img
         src="/assets/images/assets/ETIQUETA_FRONT.webp"
         alt="MyGin"
-        style={{ height: 120, marginBottom: 20, objectFit: 'contain' }}
+        style={{ display: 'block', height: 120, margin: '0 auto 20px', objectFit: 'contain' }}
       />
 
       {denied ? (

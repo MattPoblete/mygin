@@ -33,10 +33,12 @@ export default function Button({
     md: { padding: '12px 20px', fontSize: 'var(--fs-base)' },
     lg: { padding: '16px 32px', fontSize: '1.125rem' },
   };
+  // Solo longhand (borderColor); el ancho/estilo van en `base`. Mezclar el shorthand
+  // `border` con `borderColor` rompe en re-render (React quita uno y deja el otro).
   const variants: Record<Variant, CSSProperties> = {
-    primary: { background: 'var(--crimson)', color: 'var(--white)', border: '2px solid var(--crimson)' },
-    secondary: { background: 'var(--navy-light)', color: 'var(--white)', border: '2px solid var(--navy-light)' },
-    tertiary: { background: 'transparent', color: 'var(--crimson)', border: '2px solid var(--crimson)' },
+    primary: { background: 'var(--crimson)', color: 'var(--white)', borderColor: 'var(--crimson)' },
+    secondary: { background: 'var(--navy-light)', color: 'var(--white)', borderColor: 'var(--navy-light)' },
+    tertiary: { background: 'transparent', color: 'var(--crimson)', borderColor: 'var(--crimson)' },
   };
   const hoverStyle: Record<Variant, CSSProperties> = {
     primary: { background: 'var(--crimson-dark)', borderColor: 'var(--crimson-dark)' },
@@ -55,6 +57,8 @@ export default function Button({
     letterSpacing: 'var(--ls-normal)',
     textTransform: 'uppercase',
     borderRadius: 'var(--radius-md)',
+    borderWidth: 2,
+    borderStyle: 'solid',
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.5 : 1,
     transition:
