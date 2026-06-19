@@ -9,6 +9,29 @@ paralelización" en el plan.
 
 ---
 
+## ✅ Auditoría UX + remediación (filtro ponytail, worktrees paralelos)
+
+Auditoría completa (`UX-AUDIT.md`, 8 superficies con skill `ux-designer`) → triaje ponytail
+(Tier 1+2; Tier 3 admin/PDP diferido por YAGNI) → implementado en **5 worktrees paralelos**,
+mergeados a master. Cero dependencias nuevas (full nativo). Build limpio.
+
+- ✅ **Checkout (bug de plata)** — popup navega solo con status explícito; cierre→reintento;
+  timeout de `waiting`; confirmación ramea por estado + "qué sigue"; despacho/total/IVA antes de
+  pagar; form con autoComplete/required/on-blur/RUT(módulo-11)/cupón-reset.
+- ✅ **A11y transversal** — `:focus-visible` global, `prefers-reduced-motion` global, contraste AA
+  (subtítulos `--text-muted`, eyebrows `--crimson-on-dark`), skip link; quitado `outline-none`.
+- ✅ **Tienda/PDP** — `formatPrice`→`Intl` currency, add-to-cart con "Ir al carrito" + `role=status`,
+  QtyStepper 44px, sold-out SR + bloque de confianza.
+- ✅ **Nav/contenido** — Navbar (banner, toggle 44px, scroll-spy, menú móvil `<dialog>`), AgeGate
+  `<dialog>` accesible (sin expulsar a google), footer desde `site.ts`, `#recetas` fuera, WhatsApp
+  (placeholder), ContactForm validado, fecha de blog `Intl`.
+- ✅ **Admin lean** — flash de guardado (`SavedFlash`), guard de cambios sin guardar, required +
+  campos identidad `readonly`, login con reset de contraseña + "Sin permisos", chips de estado en
+  pedidos + nota "100 más recientes". `window.confirm()` se mantiene (skip soft-delete).
+- ⬜ **Operativo (usuario):** confirmar número real de WhatsApp en `content/site.ts` (hoy placeholder).
+
+---
+
 ## ✅ Re-skin con MyGin Design System (claude.ai/design)
 
 - ✅ **Integración del design system** (`bd248bfd…`). Tokens portados a `globals.css`
