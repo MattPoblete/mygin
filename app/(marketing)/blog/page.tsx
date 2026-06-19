@@ -18,7 +18,12 @@ const CATEGORY_LABEL: Record<BlogCategory, string> = {
 };
 
 export default async function BlogIndexPage() {
-  const posts = await listPublishedPosts().catch(() => []);
+  const posts = await listPublishedPosts().catch((err) => {
+    // No romper la página por un fallo de Firestore, pero dejar rastro en los logs
+    // del server (un índice faltante u otro error no debe disfrazarse de "blog vacío").
+    console.error('blog: listPublishedPosts falló', err);
+    return [];
+  });
 
   return (
     <main className="bg-background text-on-surface min-h-screen px-6 pt-32 pb-24">

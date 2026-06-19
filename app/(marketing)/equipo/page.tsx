@@ -61,7 +61,9 @@ async function getTeamMembers(): Promise<TeamMember[]> {
     return snap.docs
       .map((d) => ({ id: d.id, ...(d.data() as Omit<TeamMember, 'id'>) }))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  } catch {
+  } catch (err) {
+    // Cae al equipo de respaldo, pero deja rastro del fallo real en los logs del server.
+    console.error('equipo: getTeamMembers falló', err);
     return [];
   }
 }
