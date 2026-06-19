@@ -93,6 +93,11 @@
   --white:       #ffffff;
   --warm-gray:   #b8b5b0;
   --dark-gray:   #8b8884;
+  /* WCAG AA fixes — accessible variants for SMALL text only (large/display text keeps brand tokens).
+     --text-muted:       muted body text on cream → 5.07:1 (vs --dark-gray #8b8884 ≈ 3.24:1, fails).
+     --crimson-on-dark:  small crimson text/eyebrows on navy → 5.25:1 (vs --crimson #dc3545 ≈ 2.62:1, fails). */
+  --text-muted:        #5a6b78;
+  --crimson-on-dark:   #ff8a92;
   --surface-overlay: rgba(15, 36, 53, 0.82);
   --rule-gold:   rgba(248, 245, 240, 0.55);
 
@@ -132,6 +137,29 @@
   --nav-height:  64px;
 }
 
+/* ── Accesibilidad: foco de teclado visible (global) ─────────── */
+/* Antes no había foco visible en ningún elemento. Esta regla cubre
+   botones, enlaces, inputs y los <Link> de las tarjetas. Si otro
+   componente usa `outline-none`/`focus:outline-none`, debe quitarlo
+   para que esta regla se muestre. */
+:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Accesibilidad: prefers-reduced-motion (global) ──────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ── Utilidades heráldicas (de tokens/base.css del design) ──── */
 .mg-eyebrow {
   font-family: var(--font-body);
@@ -139,7 +167,8 @@
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-mark);
   text-transform: uppercase;
-  color: var(--crimson);
+  /* Small uppercase text on navy — accessible crimson (5.25:1 vs 2.62:1 for --crimson). */
+  color: var(--crimson-on-dark);
 }
 .mg-tagline {
   font-family: var(--font-elegant);

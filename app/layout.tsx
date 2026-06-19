@@ -27,9 +27,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-body bg-background text-on-surface selection:bg-primary/30 selection:text-primary">
+        {/* Skip link — primer elemento enfocable; oculto salvo al recibir foco (Tab). */}
+        <a
+          href="#contenido"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:font-semibold focus:uppercase focus:tracking-wider focus:text-on-primary"
+        >
+          Saltar al contenido
+        </a>
         <AgeGate />
         <Navbar />
-        {children}
+        <div id="contenido">{children}</div>
         <Footer />
         <RevealObserver />
       </body>
