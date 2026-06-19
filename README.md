@@ -31,14 +31,38 @@ components/
   RevealObserver.tsx    # animaciones reveal-on-scroll
 content/site.ts         # contenido estático de marketing
 lib/
+  constants.ts          # constantes de dominio del frontend (envío, ISR, timeouts)
+  config.ts             # configuración del frontend (región, firebaseConfig, env)
   types.ts              # modelo de dominio CONGELADO (Product, Order, Coupon, ...)
   firebase/client.ts    # Firebase SDK navegador (Firestore + Auth + Analytics)
   firebase/admin.ts     # Admin SDK (solo servidor — privilegiado)
 functions/              # Cloud Functions (Flow, inventario, cupones, ...)
+  src/shared/constants.ts  # constantes de dominio server-side (FUENTE DE VERDAD)
+  src/shared/config.ts     # región y bases de URL/API (env) de las Functions
 firestore.rules         # reglas de seguridad (bloques por colección)
 firestore.indexes.json  # índices compuestos
 scripts/                # seed de catálogo, set-admin-claim, runner de e2e
 ```
+
+## Constantes y configuración
+
+Los valores fijos y las variables de entorno viven centralizados, no como
+literales dispersos. La separación es la misma en frontend y en functions:
+
+| | **Constantes** (valores de dominio fijos) | **Config** (entorno / despliegue) |
+|---|---|---|
+| **Frontend** | `lib/constants.ts` | `lib/config.ts` |
+| **Functions** | `functions/src/shared/constants.ts` | `functions/src/shared/config.ts` |
+
+- **`lib/constants.ts`** — `SHIPPING_FLAT_CLP`, `REVALIDATE_SECONDS` (ISR), `PAY_TIMEOUT_MS`, `ORDER_POLL_DELAYS`, `REVIEW_MAX_BODY`.
+- **`lib/config.ts`** — `FUNCTIONS_REGION`, `USE_EMULATORS`, `firebaseConfig` (lee `NEXT_PUBLIC_*`).
+- **`functions/src/shared/config.ts`** — `REGION`, `SCHEDULER_REGION`, y los lectores de env `projectId()`, `functionsBase()`, `siteBase()`, `flowApiBase()`. `PAYMENTS_MODE` sigue en `shared/payments.ts` (`isMockMode()`).
+
+**Fuentes de verdad / espejos a sincronizar manualmente:**
+
+- **Precio de envío:** la fuente es `SHIPPING_FLAT_CLP` en *functions* (el cliente nunca dicta precios; el servidor recalcula al crear la orden). El `lib/constants.ts` del frontend es un **espejo solo-display**. Si cambia uno, cambia el otro.
+- **Región:** `REGION` (functions) = `FUNCTIONS_REGION` (frontend) = `firebase.json`. Las funciones programadas usan `SCHEDULER_REGION` (`southamerica-east1`, São Paulo) porque Cloud Scheduler aún no existe en Santiago.
+- **Máximo de reseña:** `REVIEW_MAX_BODY` debe coincidir con la regla `body ≤ 2000` en `firestore.rules`.
 
 ---
 

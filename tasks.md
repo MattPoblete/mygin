@@ -9,6 +9,57 @@ paralelización" en el plan.
 
 ---
 
+## ✅ Catálogo en vivo + build roto por refactor de ISR
+
+Síntoma: cambios de producto en el admin (precio/descripción) se veían en Firestore pero
+no en tienda/landing. Causa real: el storefront servía páginas con `revalidate=300` +
+`stale-while-revalidate≈1año` detrás del CDN → el dato se propagaba con varios minutos de
+lag (no era un freeze: el home en vivo ya mostraba la descripción nueva).
+
+- ✅ **Catálogo dinámico** — `/`, `/tienda`, `/producto/[slug]` pasan de ISR a
+  `export const dynamic = 'force-dynamic'` (SSR en vivo desde Firestore en cada request).
+  A 2 productos y tráfico bajo, sin costo relevante; el operador ve sus cambios al
+  instante. Quité el `generateStaticParams` de `[slug]` (muerto bajo dynamic).
+- ✅ **Build roto arreglado** — un refactor previo metió `export const revalidate =
+  REVALIDATE_SECONDS` (constante **importada**) en 7 páginas; Next exige un **literal**
+  estáticamente analizable → el build fallaba entero. Inliné `300` en
+  blog/blog[slug]/equipo/sitemap y borré `REVALIDATE_SECONDS` de `lib/constants.ts`.
+- ⬜ **Operativo:** requiere `firebase deploy --only hosting` para que el sitio en vivo
+  tome el cambio (hoy sirve el build viejo). Alternativa si sube el tráfico: volver a ISR
+  + revalidación on-demand (`revalidatePath`) disparada tras el guardado del admin.
+
+---
+
+## ✅ Vuelta a Cloud Functions (Blaze activo)
+
+Con el plan Blaze activo, el checkout volvió de las Next API routes a las **Cloud
+Functions** de `functions/` (callables Admin SDK). Mock de pago intacto (`PAYMENTS_MODE`
+sin setear ⇒ mock); Flow real sigue listo en el código para cuando se quiera ir a `live`.
+
+- ✅ **Front → callables** — `lib/checkout.ts` usa `httpsCallable` (createOrder,
+  validateCoupon, getOrderStatus, mockConfirmPayment) en vez de `fetch` a `/api/checkout/*`.
+  `lib/firebase/client.ts` expone `functions` (región `southamerica-west1`) y conecta al
+  emulador (5001) bajo `NEXT_PUBLIC_FIREBASE_EMULATOR=1`. Páginas sin cambios (mismas firmas).
+- ✅ **Eliminado** — `app/api/checkout/*` (5 rutas) y `lib/server/checkout.ts`. La
+  autocancelación >24h (`expire-orders` + cron externo) la reemplaza el scheduled
+  `releaseExpiredReservations` (cada 10 min, por `reservationExpiresAt`; índice ya existe).
+  Ese scheduled vive en **`southamerica-east1`** (Cloud Scheduler aún no existe en
+  `southamerica-west1`); las callables + `flowWebhook` quedan en `southamerica-west1`.
+- ✅ **Bug rescatado** — `functions/src/shared/admin.ts` no tenía
+  `ignoreUndefinedProperties` (sí lo tenía el Admin SDK de Next); sin él, `createOrder`
+  reventaba al escribir `customer.rut` opcional. Replicado.
+- ✅ **E2E** — emulador de Functions añadido a `firebase.test.json` + `run-e2e.mjs`
+  (build de functions antes de `emulators:exec --only auth,firestore,functions`).
+  `overselling.spec` pega al callable (sobre `{data}`; oversell → HTTP 400). Workers
+  locales capados a 4 (un solo emulador de Functions). **105 tests passing**, build limpio.
+- ✅ **Desplegado (mock)** — `firebase deploy --only functions` con secretos placeholder
+  (`FLOW_API_KEY`/`FLOW_SECRET_KEY` dummy; en mock no se leen). 6 funciones live; smoke
+  test del callable `validateCoupon` en prod → 200 público. Runbook en
+  `docs/DEPLOY_FUNCTIONS.md`. Para ir a Flow real: setear las llaves reales +
+  `PAYMENTS_MODE=live` y redeployar (opción B del runbook).
+
+---
+
 ## ✅ Tests E2E (Playwright + emulador Firebase) — todos los flujos
 
 Cobertura E2E del ecommerce contra el **emulador Firebase** (datos sembrados, pago mock),
@@ -80,11 +131,10 @@ mergeados a master. Cero dependencias nuevas (full nativo). Build limpio.
 ## ✅ Pago mockeado + imágenes (sesión anterior)
 
 - ✅ **Pago Flow mockeado** — el checkout abre `/checkout/mock` en ventana nueva
-  (aceptar/rechazar) y captura el resultado por `postMessage`. Backend portado de
-  Cloud Functions a **Next API routes** (`app/api/checkout/*` + `lib/server/checkout.ts`,
-  Admin SDK) para correr en el **plan gratuito Spark**. Verificado e2e: crear →
+  (aceptar/rechazar) y captura el resultado por `postMessage`. Verificado e2e: crear →
   awaiting → aceptar → `paid`, totales recalculados server-side. `PAYMENTS_MODE=mock`.
-  - `functions/` queda como alternativa para Blaze / Flow real (no desplegado).
+  - El backend de checkout vivió un tiempo como Next API routes (plan Spark); con
+    Blaze volvió a **Cloud Functions** — ver sección "Vuelta a Cloud Functions".
 - ✅ **Imágenes a WebP** — 22 imágenes (~210 MB) → WebP (máx 1600px, q82) ≈ 5.6 MB;
   cableadas en `content/site.ts` (hero/producto/experiencia) y productos sembrados.
   Disponibles `ingredientes/*.webp` para la grilla de botánicos (hoy usa íconos).

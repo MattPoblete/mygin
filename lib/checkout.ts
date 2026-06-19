@@ -1,11 +1,14 @@
 /**
- * lib/checkout.ts — Puente cliente con el backend de checkout (Next API routes).
+ * lib/checkout.ts — Puente cliente con el backend de checkout (Cloud Functions).
  *
- * Llama a /api/checkout/* (Route Handlers con Admin SDK). El cliente NUNCA envía
- * precios: solo { productId, qty }. Totales y validación de cupón autoritativa
- * son server-side. (Antes vivía en Cloud Functions; portado a rutas para correr
- * en el plan gratuito.)
+ * Invoca las callables de `functions/` (Admin SDK) vía httpsCallable. El cliente
+ * NUNCA envía precios: solo { productId, qty }. Totales y validación de cupón
+ * autoritativa son server-side. Los errores de las callables llegan como
+ * `FunctionsError` con `.message` = el mensaje del HttpsError; las páginas leen
+ * `err.message` directo, así que no se re-envuelven.
  */
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '@/lib/firebase/client';
 import type { CartItem } from '@/lib/types.cart';
 import type { CustomerInfo } from '@/lib/types.order';
 
@@ -38,32 +41,27 @@ if (process.env.NODE_ENV !== 'production') {
   console.assert(isValidRut('12.345.678-5') && !isValidRut('12.345.678-9'), 'isValidRut self-check failed');
 }
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error || 'Error de servidor.');
-  return data as T;
-}
-
 export interface CreateOrderResult {
   orderId: string;
   redirectUrl: string;
 }
+
+const createOrderFn = httpsCallable<
+  { items: { productId: string; qty: number }[]; customer: CustomerInfo; couponCode?: string },
+  CreateOrderResult
+>(functions, 'createOrder');
 
 export async function createOrder(input: {
   items: CartItem[];
   customer: CustomerInfo;
   couponCode?: string;
 }): Promise<CreateOrderResult> {
-  return postJson<CreateOrderResult>('/api/checkout/create-order', {
+  const res = await createOrderFn({
     items: cartToItems(input.items),
     customer: input.customer,
     couponCode: input.couponCode || undefined,
   });
+  return res.data;
 }
 
 export interface ValidateCouponResult {
@@ -74,8 +72,14 @@ export interface ValidateCouponResult {
   discount?: number;
 }
 
+const validateCouponFn = httpsCallable<{ code: string; subtotal: number }, ValidateCouponResult>(
+  functions,
+  'validateCoupon',
+);
+
 export async function validateCoupon(code: string, subtotal: number): Promise<ValidateCouponResult> {
-  return postJson<ValidateCouponResult>('/api/checkout/validate-coupon', { code, subtotal });
+  const res = await validateCouponFn({ code, subtotal });
+  return res.data;
 }
 
 export interface OrderStatusResult {
@@ -90,11 +94,14 @@ export interface OrderStatusResult {
   createdAt: number | null;
 }
 
+const getOrderStatusFn = httpsCallable<{ orderId: string }, OrderStatusResult>(
+  functions,
+  'getOrderStatus',
+);
+
 export async function getOrderStatus(orderId: string): Promise<OrderStatusResult> {
-  const res = await fetch(`/api/checkout/order-status?orderId=${encodeURIComponent(orderId)}`);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error || 'No se pudo consultar el pedido.');
-  return data as OrderStatusResult;
+  const res = await getOrderStatusFn({ orderId });
+  return res.data;
 }
 
 // --- Pago simulado (mock) ---
@@ -102,10 +109,16 @@ export interface MockConfirmResult {
   status: 'paid' | 'cancelled' | 'noop';
 }
 
+const mockConfirmFn = httpsCallable<{ orderId: string; decision: 'accept' | 'reject' }, MockConfirmResult>(
+  functions,
+  'mockConfirmPayment',
+);
+
 /** Confirma (acepta/rechaza) un pago simulado. Solo activo en PAYMENTS_MODE=mock. */
 export async function mockConfirmPayment(
   orderId: string,
   decision: 'accept' | 'reject',
 ): Promise<MockConfirmResult> {
-  return postJson<MockConfirmResult>('/api/checkout/mock-confirm', { orderId, decision });
+  const res = await mockConfirmFn({ orderId, decision });
+  return res.data;
 }

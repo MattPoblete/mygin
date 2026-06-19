@@ -9,9 +9,12 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { db } from '../shared/admin.js';
+import { SCHEDULER_REGION } from '../shared/config.js';
 
 export const releaseExpiredReservations = onSchedule(
-  { region: 'southamerica-west1', schedule: 'every 10 minutes' },
+  // Cloud Scheduler aún no existe en southamerica-west1 (Santiago); São Paulo sí.
+  // La región del cron no afecta latencia: solo lee/escribe Firestore.
+  { region: SCHEDULER_REGION, schedule: 'every 10 minutes' },
   async () => {
     const now = Timestamp.now();
     const snap = await db

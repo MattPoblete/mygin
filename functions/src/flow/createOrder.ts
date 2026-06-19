@@ -17,6 +17,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { db } from '../shared/admin.js';
 import { SHIPPING_FLAT_CLP, RESERVATION_MINUTES } from '../shared/constants.js';
+import { REGION, functionsBase, siteBase } from '../shared/config.js';
 import { isMockMode } from '../shared/payments.js';
 import { createPayment } from './flowClient.js';
 import {
@@ -88,7 +89,7 @@ function sanitizeCustomer(c: InCustomer | undefined): InCustomer {
 }
 
 export const createOrder = onCall(
-  { region: 'southamerica-west1', secrets: [FLOW_API_KEY, FLOW_SECRET_KEY] },
+  { region: REGION, secrets: [FLOW_API_KEY, FLOW_SECRET_KEY] },
   async (request) => {
     const data = request.data as CreateOrderData;
 
@@ -222,13 +223,10 @@ export const createOrder = onCall(
 
     // --- Crear el pago en Flow (fuera de la transacción) ---
     const creds = { apiKey: FLOW_API_KEY.value(), secretKey: FLOW_SECRET_KEY.value() };
-    // urlConfirmation (webhook) y urlReturn. La base de Functions y del sitio son
-    // configurables por env; defaults derivados del projectId.
-    const projectId = process.env.GCLOUD_PROJECT || 'theirgin';
-    const fnBase =
-      process.env.FLOW_FUNCTIONS_BASE ||
-      `https://southamerica-west1-${projectId}.cloudfunctions.net`;
-    const siteBase = process.env.SITE_BASE_URL || `https://${projectId}.web.app`;
+    // urlConfirmation (webhook) y urlReturn. Las bases de Functions y del sitio
+    // son configurables por env; defaults derivados del projectId (ver config.ts).
+    const fnBase = functionsBase();
+    const siteBaseUrl = siteBase();
 
     try {
       const payment = await createPayment(
@@ -238,7 +236,7 @@ export const createOrder = onCall(
           amount: txResult.total,
           email: customer.email,
           urlConfirmation: `${fnBase}/flowWebhook`,
-          urlReturn: `${siteBase}/checkout/retorno?orderId=${orderRef.id}`,
+          urlReturn: `${siteBaseUrl}/checkout/retorno?orderId=${orderRef.id}`,
         },
         creds,
       );

@@ -10,19 +10,9 @@
 import { getApps, getApp, initializeApp, type FirebaseApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator, type Auth } from 'firebase/auth';
+import { getFunctions, connectFunctionsEmulator, type Functions } from 'firebase/functions';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
-
-// Referencias estáticas a process.env.* — Next.js solo inlina NEXT_PUBLIC_* en el
-// bundle del cliente cuando se accede de forma literal (no por índice dinámico).
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-};
+import { firebaseConfig, FUNCTIONS_REGION, USE_EMULATORS } from '@/lib/config';
 
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
   throw new Error(
@@ -34,12 +24,14 @@ const isNewApp = !getApps().length;
 export const app: FirebaseApp = isNewApp ? initializeApp(firebaseConfig) : getApp();
 export const db: Firestore = getFirestore(app);
 export const auth: Auth = getAuth(app);
+export const functions: Functions = getFunctions(app, FUNCTIONS_REGION);
 
-// Tests E2E: conecta al emulador (Firestore + Auth) cuando NEXT_PUBLIC_FIREBASE_EMULATOR=1.
-// Solo en la primera init para no re-conectar en hot-reload.
-if (isNewApp && process.env.NEXT_PUBLIC_FIREBASE_EMULATOR === '1') {
+// Tests E2E: conecta a los emuladores (Firestore + Auth + Functions) cuando
+// USE_EMULATORS. Solo en la primera init para no re-conectar en hot-reload.
+if (isNewApp && USE_EMULATORS) {
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectFunctionsEmulator(functions, '127.0.0.1', 5001);
 }
 
 /** Analytics solo en navegador y si el entorno lo soporta. Devuelve null en SSR. */

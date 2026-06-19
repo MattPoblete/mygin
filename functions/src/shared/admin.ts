@@ -10,3 +10,10 @@ import { getFirestore } from 'firebase-admin/firestore';
 if (!getApps().length) initializeApp();
 
 export const db = getFirestore();
+// Ignora campos undefined al escribir (p.ej. customer.rut opcional) en vez de
+// fallar. Debe configurarse antes de la primera operación de Firestore.
+try {
+  db.settings({ ignoreUndefinedProperties: true });
+} catch {
+  // settings ya aplicado (instancia re-evaluada) — sin efecto.
+}

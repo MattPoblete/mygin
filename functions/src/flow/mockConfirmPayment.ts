@@ -12,6 +12,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { isMockMode } from '../shared/payments.js';
 import { settleOrder } from './settle.js';
+import { REGION } from '../shared/config.js';
 
 interface MockConfirmData {
   orderId?: string;
@@ -19,7 +20,7 @@ interface MockConfirmData {
 }
 
 export const mockConfirmPayment = onCall(
-  { region: 'southamerica-west1' },
+  { region: REGION },
   async (request) => {
     if (!isMockMode()) {
       throw new HttpsError('failed-precondition', 'El pago simulado está deshabilitado.');

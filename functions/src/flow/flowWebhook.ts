@@ -14,9 +14,10 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../shared/admin.js';
 import { getStatus } from './flowClient.js';
 import { FLOW_API_KEY, FLOW_SECRET_KEY } from './createOrder.js';
+import { REGION } from '../shared/config.js';
 
 export const flowWebhook = onRequest(
-  { region: 'southamerica-west1', secrets: [FLOW_API_KEY, FLOW_SECRET_KEY] },
+  { region: REGION, secrets: [FLOW_API_KEY, FLOW_SECRET_KEY] },
   async (req, res) => {
     try {
       const token = (req.body?.token ?? req.query?.token) as string | undefined;

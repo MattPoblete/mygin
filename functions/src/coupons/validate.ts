@@ -12,6 +12,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { db } from '../shared/admin.js';
 import { SHIPPING_FLAT_CLP } from '../shared/constants.js';
 import { findCouponLoose, evaluateCouponSnap, isCouponError } from './logic.js';
+import { REGION } from '../shared/config.js';
 
 interface ValidateCouponData {
   code: string;
@@ -19,7 +20,7 @@ interface ValidateCouponData {
 }
 
 export const validateCoupon = onCall(
-  { region: 'southamerica-west1' },
+  { region: REGION },
   async (request) => {
     const { code, subtotal } = (request.data ?? {}) as ValidateCouponData;
     if (typeof code !== 'string' || !code.trim()) {

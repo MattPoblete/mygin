@@ -19,9 +19,15 @@ if (existsSync(jdkRoot)) {
 }
 
 const pwArgs = process.argv.slice(2).join(' ');
+// El emulador de Functions carga functions/lib/index.js → hay que compilar antes.
+const build = spawnSync('npm --prefix functions run build', { stdio: 'inherit', env, shell: true });
+if (build.status !== 0) process.exit(build.status ?? 1);
+
 const inner = `node scripts/seed-emulator.mjs && playwright test ${pwArgs}`.trim();
 // shell:true → un único string; el comando interno va entre comillas para emulators:exec.
-// --config firebase.test.json: solo firestore+auth+emuladores (evita webframeworks del hosting).
-const cmd = `firebase emulators:exec --only auth,firestore --project theirgin --config firebase.test.json "${inner}"`;
+// --config firebase.test.json: firestore+auth+functions (evita webframeworks del hosting).
+// El checkout ahora pega a las callables de functions/, así que el emulador de Functions
+// debe estar arriba (PAYMENTS_MODE por defecto = mock).
+const cmd = `firebase emulators:exec --only auth,firestore,functions --project theirgin --config firebase.test.json "${inner}"`;
 const r = spawnSync(cmd, { stdio: 'inherit', env, shell: true });
 process.exit(r.status ?? 1);

@@ -28,7 +28,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // Todas las callables de checkout pegan a un único emulador de Functions
+  // (proceso aparte). A workers = nº de CPUs lo saturaban y alguna llamada
+  // pasaba el timeout del assert; 4 lo mantiene holgado sin alargar la suite.
+  workers: process.env.CI ? 2 : 4,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: BASE_URL,

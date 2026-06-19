@@ -10,13 +10,14 @@
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { db } from '../shared/admin.js';
+import { REGION } from '../shared/config.js';
 
 interface GetOrderStatusData {
   orderId: string;
 }
 
 export const getOrderStatus = onCall(
-  { region: 'southamerica-west1' },
+  { region: REGION },
   async (request) => {
     const { orderId } = (request.data ?? {}) as GetOrderStatusData;
     if (typeof orderId !== 'string' || !orderId) {

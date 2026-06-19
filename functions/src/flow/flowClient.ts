@@ -11,11 +11,7 @@
  * pasan a estas funciones como argumentos.
  */
 import { createHmac } from 'node:crypto';
-
-/** Base de la API de Flow. Sandbox por defecto; prod vía env FLOW_API_BASE. */
-function apiBase(): string {
-  return process.env.FLOW_API_BASE || 'https://sandbox.flow.cl/api';
-}
+import { flowApiBase } from '../shared/config.js';
 
 /** Firma Flow: params ordenados alfabéticamente, concatenados nombre+valor, HMAC-SHA256 hex. */
 export function signParams(params: Record<string, string>, secretKey: string): string {
@@ -66,7 +62,7 @@ export async function createPayment(
   params.s = signParams(params, creds.secretKey);
 
   const body = new URLSearchParams(params).toString();
-  const res = await fetch(`${apiBase()}/payment/create`, {
+  const res = await fetch(`${flowApiBase()}/payment/create`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
@@ -97,7 +93,7 @@ export async function getStatus(token: string, creds: FlowCreds): Promise<FlowSt
   const params: Record<string, string> = { apiKey: creds.apiKey, token };
   params.s = signParams(params, creds.secretKey);
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`${apiBase()}/payment/getStatus?${qs}`, { method: 'GET' });
+  const res = await fetch(`${flowApiBase()}/payment/getStatus?${qs}`, { method: 'GET' });
   const data = (await res.json()) as Record<string, unknown> & { status?: number; message?: string };
   if (!res.ok || typeof data.status !== 'number') {
     throw new Error(`Flow getStatus falló: ${data.message ?? res.status}`);
