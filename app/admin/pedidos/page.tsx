@@ -90,9 +90,9 @@ export default function OrdersListPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 tabular-nums">
-                    ${formatPrice(o.total)}
+                    {formatPrice(o.total)}
                     {o.discount > 0 && (
-                      <div className="text-secondary text-xs">-${formatPrice(o.discount)}{o.discountCode ? ` (${o.discountCode})` : ''}</div>
+                      <div className="text-secondary text-xs">-{formatPrice(o.discount)}{o.discountCode ? ` (${o.discountCode})` : ''}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">

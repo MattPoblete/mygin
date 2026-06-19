@@ -15,6 +15,7 @@ import {
   deleteDoc,
   query,
   orderBy,
+  where,
   serverTimestamp,
   type DocumentData,
 } from 'firebase/firestore';
@@ -57,6 +58,14 @@ export interface ProductInput {
 export async function listProducts(): Promise<Product[]> {
   const snap = await getDocs(query(collection(db, COLLECTION), orderBy('createdAt', 'desc')));
   return snap.docs.map(serializeProduct);
+}
+
+/** Productos activos del catálogo público (tienda + landing), destacados primero. */
+export async function getActiveProducts(): Promise<Product[]> {
+  const snap = await getDocs(query(collection(db, COLLECTION), where('active', '==', true)));
+  return snap.docs
+    .map(serializeProduct)
+    .sort((a, b) => Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name));
 }
 
 export async function getProduct(id: string): Promise<Product | null> {

@@ -44,4 +44,23 @@ test.describe('Landing (/)', () => {
     await page.getByRole('link', { name: 'Comprar ahora' }).click();
     await expect(page).toHaveURL(/\/tienda$/);
   });
+
+  // Precio/descripción/imagen/badge de las secciones Producto y Shop salen de Firestore,
+  // no de content/site.ts. El badge "Lo más pedido" del Pack solo existe en la DB seed:
+  // si aparece en la landing, la sección está leyendo del catálogo, no del contenido estático.
+  test('las secciones de producto reflejan el catálogo de Firestore', async ({ page }) => {
+    await passAgeGate(page);
+    await page.goto('/');
+
+    const shop = page.locator('section#tienda');
+    // Badge del Pack Amigos proveniente de la DB (en site.ts sería "Ahorra $3.000").
+    await expect(shop.getByText('Lo más pedido')).toBeVisible();
+    // shortDesc de la botella individual desde la DB.
+    await expect(shop.getByText('750 ml · Gin Contemporáneo')).toBeVisible();
+
+    // Imagen del tile destacado = images[0] del producto seed.
+    await expect(
+      shop.locator('img[src="/assets/images/assets/botella_naturaleza.webp"]').first(),
+    ).toBeVisible();
+  });
 });

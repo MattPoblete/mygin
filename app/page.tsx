@@ -5,16 +5,22 @@ import Botanicals from '@/components/sections/Botanicals';
 import Distribuidores from '@/components/sections/Distribuidores';
 import Shop from '@/components/sections/Shop';
 import Contacto from '@/components/sections/Contacto';
+import { getActiveProducts } from '@/lib/products';
 
-export default function HomePage() {
+// Precio/imagen/descripción de Producto y Shop salen de Firestore; revalida igual que /tienda.
+export const revalidate = 300;
+
+export default async function HomePage() {
+  const bySlug = new Map((await getActiveProducts()).map((p) => [p.slug, p]));
+
   return (
     <main>
       <Hero />
       <Distribuidores />
-      <Producto />
+      <Producto products={bySlug} />
       <Historia />
       <Botanicals />
-      <Shop />
+      <Shop products={bySlug} />
       <Contacto />
     </main>
   );

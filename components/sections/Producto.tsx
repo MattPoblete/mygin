@@ -1,4 +1,5 @@
 import site from '@/content/site';
+import type { Product } from '@/lib/types';
 import CtaButton from '@/components/ui/CtaButton';
 import SectionTitle from '@/components/ui/SectionTitle';
 import Badge from '@/components/ui/Badge';
@@ -7,10 +8,12 @@ import { formatPrice } from '@/lib/cta';
 /**
  * Producto — calca ui_kits/website/ProductDetail.jsx:
  * fondo de botella en duotono, notas de cata Nariz/Boca/Final, badges, precio + CTA.
- * (Los botánicos se muestran ahora en la sección Botanicals dedicada.)
+ * Precio/imagen/descripción salen de Firestore (mygin-botella-individual); el resto es editorial.
  */
-export default function Producto() {
-  const p = site.producto;
+export default function Producto({ products }: { products: Map<string, Product> }) {
+  const s = site.producto;
+  const db = products.get('mygin-botella-individual');
+  const p = { ...s, price: db?.price ?? s.price, image: db?.images?.[0] ?? s.image, body: db?.longDesc ?? s.body };
   const price = formatPrice(p.price);
 
   return (

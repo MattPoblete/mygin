@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import site from '@/content/site';
+import type { Product } from '@/lib/types';
+import type { ShopItem } from '@/content/site';
 import SectionTitle from '@/components/ui/SectionTitle';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
@@ -9,13 +11,22 @@ import { formatPrice } from '@/lib/cta';
 /**
  * Shop — calca ui_kits/website/Shop.jsx: grilla bento de productos sobre cream.
  * Enlaza a las páginas de producto reales (/producto/[slug]); el carrito vive en /tienda.
+ * Precio/imagen/descripción/badge vienen de Firestore por slug; el resto es editorial.
  */
 const fmt = (n: number) => formatPrice(n);
 
-export default function Shop() {
+/** Sobreescribe los campos dinámicos del item con el producto de la DB (fallback a site.ts). */
+function merge(it: ShopItem, products: Map<string, Product>): ShopItem {
+  const p = products.get(it.href.split('/').pop() ?? '');
+  if (!p) return it;
+  return { ...it, price: p.price, img: p.images?.[0] ?? it.img, blurb: p.shortDesc ?? it.blurb, badge: p.badge ?? it.badge };
+}
+
+export default function Shop({ products }: { products: Map<string, Product> }) {
   const t = site.tienda;
-  const featured = t.items.find((i) => i.featured) ?? t.items[0];
-  const rest = t.items.filter((i) => i !== featured);
+  const base = t.items.find((i) => i.featured) ?? t.items[0];
+  const featured = merge(base, products);
+  const rest = t.items.filter((i) => i !== base).map((i) => merge(i, products));
 
   return (
     <section id="tienda" className="px-8 md:px-12 py-16 md:py-24" style={{ background: 'var(--cream)' }}>
