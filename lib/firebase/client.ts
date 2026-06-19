@@ -8,8 +8,8 @@
  * en Cloud Functions — NUNCA este módulo. Ver lib/firebase/admin.ts.
  */
 import { getApps, getApp, initializeApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator, type Auth } from 'firebase/auth';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 
 // Referencias estáticas a process.env.* — Next.js solo inlina NEXT_PUBLIC_* en el
@@ -30,9 +30,17 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId
   );
 }
 
-export const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const isNewApp = !getApps().length;
+export const app: FirebaseApp = isNewApp ? initializeApp(firebaseConfig) : getApp();
 export const db: Firestore = getFirestore(app);
 export const auth: Auth = getAuth(app);
+
+// Tests E2E: conecta al emulador (Firestore + Auth) cuando NEXT_PUBLIC_FIREBASE_EMULATOR=1.
+// Solo en la primera init para no re-conectar en hot-reload.
+if (isNewApp && process.env.NEXT_PUBLIC_FIREBASE_EMULATOR === '1') {
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+}
 
 /** Analytics solo en navegador y si el entorno lo soporta. Devuelve null en SSR. */
 export async function getClientAnalytics(): Promise<Analytics | null> {

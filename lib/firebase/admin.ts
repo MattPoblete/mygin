@@ -36,9 +36,17 @@ function resolveCredential() {
   return applicationDefault();
 }
 
+// Contra el emulador (tests E2E) no se requieren credenciales: el Admin SDK detecta
+// FIRESTORE_EMULATOR_HOST/FIREBASE_AUTH_EMULATOR_HOST y basta con el projectId.
+const useEmulator = !!process.env.FIRESTORE_EMULATOR_HOST;
+
 export const adminApp: App = getApps().length
   ? getApps()[0]
-  : initializeApp({ credential: resolveCredential(), projectId: 'theirgin' });
+  : initializeApp(
+      useEmulator
+        ? { projectId: 'theirgin' }
+        : { credential: resolveCredential(), projectId: 'theirgin' },
+    );
 
 export const adminDb: Firestore = getFirestore(adminApp);
 // Ignora campos undefined al escribir (p.ej. customer.rut opcional) en vez de

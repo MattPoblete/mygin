@@ -36,3 +36,13 @@ Thumbs.db
 
 # Claude Code
 .claude/
+
+# Playwright E2E
+/.jdk/
+/test-results/
+/playwright-report/
+/blob-report/
+/e2e/.auth/
+firebase-export-*/
+ui-debug.log
+firestore-debug.log

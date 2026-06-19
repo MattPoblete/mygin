@@ -1,3 +1,8 @@
+allowBuilds:
+  '@firebase/util': set this to true or false
+  protobufjs: set this to true or false
+  re2: set this to true or false
+  sharp: set this to true or false
 # No es un monorepo (sin `packages:`). Este archivo solo lleva los ajustes de
 # pnpm: qué dependencias pueden correr scripts de build, y saltarse la
 # verificación de deps antes de cada script.
