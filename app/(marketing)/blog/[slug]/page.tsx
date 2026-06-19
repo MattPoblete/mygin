@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import { getPostBySlug, listPublishedPosts } from '@/lib/blog';
-import type { BlogCategory } from '@/lib/types.blog';
+import type { BlogCategory, BlogPost } from '@/lib/types.blog';
+import JsonLd from '@/components/seo/JsonLd';
+import { SITE_URL, ORGANIZATION, absoluteUrl } from '@/lib/seo';
 
 export const revalidate = 300;
 
@@ -35,12 +37,31 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `/blog/${slug}` },
     openGraph: {
       title,
       description,
       type: 'article',
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
+  };
+}
+
+/** Schema.org BlogPosting para rich results y citabilidad en LLMs. */
+function blogPostingJsonLd(post: BlogPost) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.seo.description || post.excerpt,
+    image: post.coverImage ? absoluteUrl(post.coverImage) : undefined,
+    datePublished: post.publishedAt?.toDate?.().toISOString(),
+    dateModified: post.updatedAt?.toDate?.().toISOString(),
+    author: post.authorName
+      ? { '@type': 'Person', name: post.authorName }
+      : undefined,
+    publisher: { '@id': ORGANIZATION['@id'] },
+    mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
   };
 }
 
@@ -55,6 +76,7 @@ export default async function BlogPostPage({
 
   return (
     <main className="bg-background text-on-surface min-h-screen px-6 pt-32 pb-24">
+      <JsonLd data={blogPostingJsonLd(post)} />
       <article className="max-w-2xl mx-auto">
         <Link
           href="/blog"

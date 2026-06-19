@@ -5,11 +5,32 @@ import Footer from '@/components/nav/Footer';
 import RevealObserver from '@/components/RevealObserver';
 import AgeGate from '@/components/AgeGate';
 import { CartProvider } from '@/lib/cart/CartProvider';
+import JsonLd from '@/components/seo/JsonLd';
+import { SITE_URL, ORGANIZATION } from '@/lib/seo';
+
+const DESCRIPTION =
+  'MyGin — Gin contemporáneo chileno. 11 botánicos destilados a las orillas del Río Pedregoso, Villarrica, Araucanía.';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'MyGin — El gin que se vive.',
-  description:
-    'MyGin — Gin contemporáneo chileno. 11 botánicos destilados a las orillas del Río Pedregoso, Villarrica, Araucanía.',
+  description: DESCRIPTION,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: 'MyGin',
+    locale: 'es_CL',
+    url: SITE_URL,
+    title: 'MyGin — El gin que se vive.',
+    description: DESCRIPTION,
+    images: ['/assets/og/mygin-og.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MyGin — El gin que se vive.',
+    description: DESCRIPTION,
+    images: ['/assets/og/mygin-og.png'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -26,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
+        <JsonLd data={{ '@context': 'https://schema.org', ...ORGANIZATION }} />
       </head>
       <body className="font-body bg-background text-on-surface selection:bg-primary/30 selection:text-primary">
         {/* Skip link — primer elemento enfocable; oculto salvo al recibir foco (Tab). */}

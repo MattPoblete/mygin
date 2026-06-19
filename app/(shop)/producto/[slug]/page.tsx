@@ -9,6 +9,8 @@ import { formatPrice } from '@/lib/cta';
 import { availableStock, isLowStock } from '@/lib/cart/stock';
 import AddToCartButton from '@/components/shop/AddToCartButton';
 import Icon from '@/components/ui/Icon';
+import JsonLd from '@/components/seo/JsonLd';
+import { SITE_URL, ORGANIZATION, absoluteUrl } from '@/lib/seo';
 
 /**
  * app/(shop)/producto/[slug]/page.tsx — Detalle de producto.
@@ -47,10 +49,41 @@ export async function generateMetadata({
   return {
     title: `${product.name} — MyGin`,
     description: product.shortDesc || product.longDesc?.slice(0, 160),
+    alternates: { canonical: `/producto/${slug}` },
     openGraph: {
       title: `${product.name} — MyGin`,
       description: product.shortDesc || product.longDesc?.slice(0, 160),
       images: product.images?.length ? [{ url: product.images[0] }] : undefined,
+    },
+  };
+}
+
+/** Schema.org Product con offer (precio + disponibilidad en vivo) para rich results y LLMs. */
+function productJsonLd(product: Product, avail: number) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.shortDesc || product.longDesc || undefined,
+    image: product.images?.map((i) => absoluteUrl(i)),
+    sku: product.sku || undefined,
+    brand: { '@type': 'Brand', name: ORGANIZATION.name },
+    // Atributos (origen, botánicos, graduación…) si el admin los cargó.
+    additionalProperty: product.attributes
+      ? Object.entries(product.attributes).map(([name, value]) => ({
+          '@type': 'PropertyValue',
+          name,
+          value,
+        }))
+      : undefined,
+    offers: {
+      '@type': 'Offer',
+      price: product.price,
+      priceCurrency: product.currency || 'CLP',
+      availability: avail > 0
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      url: `${SITE_URL}/producto/${product.slug}`,
     },
   };
 }
@@ -71,6 +104,7 @@ export default async function ProductoPage({
 
   return (
     <main className="bg-background min-h-screen pt-32 pb-32">
+      <JsonLd data={productJsonLd(product, avail)} />
       <div className="container mx-auto px-8 md:px-12">
         <nav className="mb-8 text-xs uppercase tracking-widest text-on-surface-variant">
           <Link href="/tienda" className="hover:text-primary transition-colors">
@@ -93,12 +127,12 @@ export default async function ProductoPage({
             </div>
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
-                {product.images.slice(1, 5).map((img) => (
+                {product.images.slice(1, 5).map((img, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={img}
                     src={img}
-                    alt={product.name}
+                    alt={`${product.name} — vista ${i + 2}`}
                     loading="lazy"
                     className="aspect-square w-full rounded-lg object-cover bg-surface-container-lowest"
                   />
