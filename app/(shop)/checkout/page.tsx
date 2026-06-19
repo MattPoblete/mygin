@@ -5,8 +5,39 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartProvider';
 import { formatPrice } from '@/lib/cta';
-import { createOrder, validateCoupon, type ValidateCouponResult } from '@/lib/checkout';
+import { createOrder, validateCoupon, isValidRut, type ValidateCouponResult } from '@/lib/checkout';
 import type { CustomerInfo } from '@/lib/types.order';
+
+// Tarifa plana de despacho (espejo de SHIPPING_FLAT_CLP en lib/server/checkout.ts).
+const SHIPPING_FLAT_CLP = 3990;
+// Tras cuánto tiempo sin confirmación damos por colgado el pago.
+const PAY_TIMEOUT_MS = 5 * 60 * 1000;
+
+type FieldErrors = Partial<Record<string, string>>;
+
+/** Valida un campo individual; devuelve el mensaje de error o '' si es válido. */
+function validateField(name: string, value: string): string {
+  const v = value.trim();
+  switch (name) {
+    case 'name':
+      return v ? '' : 'Ingresa tu nombre.';
+    case 'email':
+      if (!v) return 'Ingresa tu email.';
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Email no válido.';
+    case 'phone':
+      return v ? '' : 'Ingresa tu teléfono.';
+    case 'rut':
+      return !v || isValidRut(v) ? '' : 'RUT no válido. Ej: 12.345.678-9';
+    case 'region':
+      return v ? '' : 'Selecciona tu región.';
+    case 'comuna':
+      return v ? '' : 'Ingresa tu comuna.';
+    case 'calle':
+      return v ? '' : 'Ingresa tu calle.';
+    default:
+      return '';
+  }
+}
 
 /**
  * app/(shop)/checkout/page.tsx — Formulario de checkout.
@@ -31,6 +62,9 @@ export default function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const [error, setError] = useState('');
+  // Mensaje cuando el popup se cierra sin confirmar / se bloquea.
+  const [payNotice, setPayNotice] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   // Cupón
   const [couponCode, setCouponCode] = useState('');
@@ -45,9 +79,11 @@ export default function CheckoutPage() {
   }, [hydrated, items.length, router]);
 
   const appliedDiscount = couponState?.valid ? couponState.discount ?? 0 : 0;
+  // El cupón free_shipping anula el despacho (lado servidor manda; aquí estimamos).
+  const estimatedShipping = couponState?.valid && couponState.type === 'free_shipping' ? 0 : SHIPPING_FLAT_CLP;
   const estimatedTotal = useMemo(
-    () => Math.max(0, subtotal - appliedDiscount),
-    [subtotal, appliedDiscount],
+    () => Math.max(0, subtotal - appliedDiscount) + estimatedShipping,
+    [subtotal, appliedDiscount, estimatedShipping],
   );
 
   const onValidateCoupon = async () => {
@@ -65,10 +101,18 @@ export default function CheckoutPage() {
     }
   };
 
+  const onBlurValidate = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const msg = validateField(name, value);
+    setFieldErrors((prev) => ({ ...prev, [name]: msg || undefined }));
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    const fd = new FormData(e.currentTarget);
+    setPayNotice('');
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const str = (k: string) => String(fd.get(k) ?? '').trim();
 
     const customer: CustomerInfo = {
@@ -86,53 +130,93 @@ export default function CheckoutPage() {
       },
     };
 
-    if (!customer.name || !customer.email || !customer.phone) {
-      setError('Nombre, email y teléfono son obligatorios.');
+    // Valida todos los campos; enfoca el primero con error.
+    const order = ['name', 'email', 'phone', 'rut', 'region', 'comuna', 'calle'];
+    const errs: FieldErrors = {};
+    for (const k of order) {
+      const msg = validateField(k, str(k));
+      if (msg) errs[k] = msg;
+    }
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      const first = order.find((k) => errs[k]);
+      if (first) form.elements.namedItem(first) instanceof HTMLElement &&
+        (form.elements.namedItem(first) as HTMLElement).focus();
       return;
     }
-    if (!customer.address.region || !customer.address.comuna || !customer.address.calle) {
-      setError('Región, comuna y calle son obligatorias.');
-      return;
-    }
+    setFieldErrors({});
 
     setBusy(true);
+    let orderId: string;
+    let payUrl: string;
     try {
-      const { orderId, redirectUrl } = await createOrder({
+      const res = await createOrder({
         items,
         customer,
         couponCode: couponState?.valid ? couponCode.trim() : undefined,
       });
-      // Abre la ventana de pago. La URL puede ser relativa (mock) o absoluta (Flow).
-      const payUrl = new URL(redirectUrl, window.location.origin).href;
-      const win = window.open(payUrl, 'mygin-pago', 'width=480,height=720');
-      if (!win) {
-        // Popup bloqueado: navega en la misma pestaña como fallback.
-        window.location.href = payUrl;
-        return;
-      }
-      setWaiting(true);
-
-      const finish = (status?: string) => {
-        window.removeEventListener('message', onMessage);
-        clearInterval(poll);
-        if (status === 'paid') clear();
-        router.push(`/checkout/confirmacion/${orderId}`);
-      };
-      const onMessage = (e: MessageEvent) => {
-        if (e.origin !== window.location.origin) return;
-        const d = e.data as { type?: string; orderId?: string; status?: string };
-        if (d?.type === 'mygin-pago' && d.orderId === orderId) finish(d.status);
-      };
-      window.addEventListener('message', onMessage);
-      // Si el usuario cierra la ventana sin decidir, igual vamos a la confirmación.
-      const poll = setInterval(() => {
-        if (win.closed) finish();
-      }, 800);
+      orderId = res.orderId;
+      // La URL puede ser relativa (mock) o absoluta (Flow).
+      payUrl = new URL(res.redirectUrl, window.location.origin).href;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'No se pudo iniciar el pago.';
-      setError(msg);
+      setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago.');
       setBusy(false);
+      return;
     }
+
+    const win = window.open(payUrl, 'mygin-pago', 'width=480,height=720');
+    if (!win) {
+      // Popup bloqueado: no redirigimos en la misma pestaña (perderíamos el form).
+      setBusy(false);
+      setPayNotice('Tu navegador bloqueó la ventana de pago. Habilita las ventanas emergentes para este sitio y vuelve a intentar.');
+      return;
+    }
+    setWaiting(true);
+
+    let settled = false;
+    const cleanup = () => {
+      window.removeEventListener('message', onMessage);
+      clearInterval(poll);
+      clearTimeout(timer);
+    };
+    // Solo navegamos a confirmación con un status explícito del popup.
+    const onMessage = (ev: MessageEvent) => {
+      if (ev.origin !== window.location.origin) return;
+      const d = ev.data as { type?: string; orderId?: string; status?: string };
+      if (d?.type !== 'mygin-pago' || d.orderId !== orderId) return;
+      settled = true;
+      cleanup();
+      if (d.status === 'paid') {
+        clear();
+        router.push(`/checkout/confirmacion/${orderId}`);
+      } else {
+        // Rechazado/cancelado: vuelve al form para reintentar.
+        setWaiting(false);
+        setBusy(false);
+        setPayNotice('El pago no se completó. Puedes intentar de nuevo.');
+      }
+    };
+    window.addEventListener('message', onMessage);
+    // Si la ventana se cierra sin avisar, volvemos al form (NO navegamos).
+    const poll = setInterval(() => {
+      if (settled) return;
+      if (win.closed) {
+        settled = true;
+        cleanup();
+        setWaiting(false);
+        setBusy(false);
+        setPayNotice('No recibimos confirmación del pago. ¿Reintentar?');
+      }
+    }, 800);
+    // Salvaguarda: nunca quedarse colgado en "Esperando el pago…".
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      setWaiting(false);
+      setBusy(false);
+      setPayNotice('No recibimos confirmación del pago. ¿Reintentar?');
+    }, PAY_TIMEOUT_MS);
   };
 
   if (!hydrated) {
@@ -153,17 +237,38 @@ export default function CheckoutPage() {
             <fieldset className="space-y-6">
               <legend className="font-headline text-xl text-on-surface mb-2">Tus datos</legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <Field label="Nombre completo">
-                  <input name="name" required className={inputCls} />
+                <Field label="Nombre completo" htmlFor="name" required error={fieldErrors.name}>
+                  <input
+                    id="name" name="name" required autoComplete="name"
+                    aria-required="true" aria-invalid={!!fieldErrors.name || undefined}
+                    aria-describedby={fieldErrors.name ? 'name-error' : undefined}
+                    onBlur={onBlurValidate} className={inputCls}
+                  />
                 </Field>
-                <Field label="RUT (opcional)">
-                  <input name="rut" className={inputCls} />
+                <Field label="RUT (opcional)" htmlFor="rut" error={fieldErrors.rut}>
+                  <input
+                    id="rut" name="rut" placeholder="12.345.678-9" inputMode="text"
+                    aria-invalid={!!fieldErrors.rut || undefined}
+                    aria-describedby={fieldErrors.rut ? 'rut-error' : undefined}
+                    onBlur={onBlurValidate} className={inputCls}
+                  />
                 </Field>
-                <Field label="Email">
-                  <input name="email" type="email" required className={inputCls} />
+                <Field label="Email" htmlFor="email" required error={fieldErrors.email}>
+                  <input
+                    id="email" name="email" type="email" required autoComplete="email"
+                    aria-required="true" aria-invalid={!!fieldErrors.email || undefined}
+                    aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                    onBlur={onBlurValidate} className={inputCls}
+                  />
                 </Field>
-                <Field label="Teléfono">
-                  <input name="phone" type="tel" required className={inputCls} />
+                <Field label="Teléfono" htmlFor="phone" required error={fieldErrors.phone}>
+                  <input
+                    id="phone" name="phone" type="tel" required autoComplete="tel"
+                    inputMode="tel" placeholder="+56 9 1234 5678"
+                    aria-required="true" aria-invalid={!!fieldErrors.phone || undefined}
+                    aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}
+                    onBlur={onBlurValidate} className={inputCls}
+                  />
                 </Field>
               </div>
             </fieldset>
@@ -171,47 +276,73 @@ export default function CheckoutPage() {
             <fieldset className="space-y-6">
               <legend className="font-headline text-xl text-on-surface mb-2">Despacho</legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <Field label="Región">
-                  <select name="region" required defaultValue="" className={inputCls}>
+                <Field label="Región" htmlFor="region" required error={fieldErrors.region}>
+                  <select
+                    id="region" name="region" required defaultValue="" autoComplete="address-level1"
+                    aria-required="true" aria-invalid={!!fieldErrors.region || undefined}
+                    aria-describedby={fieldErrors.region ? 'region-error' : undefined}
+                    onBlur={onBlurValidate} className={inputCls}
+                  >
                     <option value="" disabled>Selecciona…</option>
                     {REGIONES.map((r) => (
                       <option key={r} value={r}>{r}</option>
                     ))}
                   </select>
                 </Field>
-                <Field label="Comuna">
-                  <input name="comuna" required className={inputCls} />
+                <Field label="Comuna" htmlFor="comuna" required error={fieldErrors.comuna}>
+                  <input
+                    id="comuna" name="comuna" required autoComplete="address-level2"
+                    aria-required="true" aria-invalid={!!fieldErrors.comuna || undefined}
+                    aria-describedby={fieldErrors.comuna ? 'comuna-error' : undefined}
+                    onBlur={onBlurValidate} className={inputCls}
+                  />
                 </Field>
               </div>
-              <Field label="Calle">
-                <input name="calle" required className={inputCls} />
+              <Field label="Calle" htmlFor="calle" required error={fieldErrors.calle}>
+                <input
+                  id="calle" name="calle" required autoComplete="street-address"
+                  aria-required="true" aria-invalid={!!fieldErrors.calle || undefined}
+                  aria-describedby={fieldErrors.calle ? 'calle-error' : undefined}
+                  onBlur={onBlurValidate} className={inputCls}
+                />
               </Field>
               <div className="grid grid-cols-2 gap-6">
-                <Field label="Número (opcional)">
-                  <input name="numero" className={inputCls} />
+                <Field label="Número (opcional)" htmlFor="numero">
+                  <input id="numero" name="numero" className={inputCls} />
                 </Field>
-                <Field label="Depto/Casa (opcional)">
-                  <input name="depto" className={inputCls} />
+                <Field label="Depto/Casa (opcional)" htmlFor="depto">
+                  <input id="depto" name="depto" className={inputCls} />
                 </Field>
               </div>
-              <Field label="Notas para el despacho (opcional)">
-                <textarea name="notas" rows={2} className={inputCls} />
+              <Field label="Notas para el despacho (opcional)" htmlFor="notas">
+                <textarea id="notas" name="notas" rows={2} className={inputCls} />
               </Field>
             </fieldset>
 
-            {error && <p className="text-error text-sm">{error}</p>}
+            {error && <p className="text-error text-sm" role="alert">{error}</p>}
+            {payNotice && (
+              <p className="rounded-lg border border-outline-variant/40 bg-surface-container p-3 text-sm text-on-surface" role="alert">
+                {payNotice}
+              </p>
+            )}
 
             <button
               type="submit"
               disabled={busy || waiting}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {waiting ? 'Esperando el pago…' : busy ? 'Abriendo el pago…' : 'Pagar'}
+              {waiting
+                ? 'Esperando el pago…'
+                : busy
+                  ? 'Abriendo el pago…'
+                  : payNotice
+                    ? 'Reintentar pago'
+                    : `Pagar $${formatPrice(estimatedTotal)}`}
             </button>
             <p className="text-xs text-on-surface-variant/70 text-center">
               {waiting
                 ? 'Completa el pago en la ventana que se abrió. Esta página se actualizará al terminar.'
-                : 'Se abrirá una ventana para completar el pago de forma segura.'}
+                : 'Se abrirá una ventana para completar el pago de forma segura. IVA incluido.'}
             </p>
           </form>
 
@@ -235,7 +366,10 @@ export default function CheckoutPage() {
               <div className="flex gap-2">
                 <input
                   value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value);
+                    if (couponState) setCouponState(null); // invalida el estado al editar
+                  }}
                   placeholder="CÓDIGO"
                   className={`${inputCls} uppercase`}
                 />
@@ -268,12 +402,18 @@ export default function CheckoutPage() {
                   <span className="tabular-nums">-${formatPrice(appliedDiscount)}</span>
                 </div>
               )}
+              <div className="flex justify-between text-on-surface-variant">
+                <span>Despacho</span>
+                <span className="tabular-nums">
+                  {estimatedShipping === 0 ? 'Gratis' : `$${formatPrice(estimatedShipping)}`}
+                </span>
+              </div>
               <div className="flex justify-between items-center border-t border-outline-variant/20 pt-3">
-                <span className="text-on-surface">Total estimado</span>
+                <span className="text-on-surface">Total</span>
                 <span className="font-headline text-2xl text-primary">${formatPrice(estimatedTotal)}</span>
               </div>
               <p className="text-xs text-on-surface-variant/70">
-                El despacho y el total final se confirman en el pago.
+                IVA incluido. Despacho según comuna; el total final se confirma en el pago.
               </p>
             </div>
 
@@ -291,13 +431,33 @@ export default function CheckoutPage() {
 }
 
 const inputCls =
-  'w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-4 py-2.5 text-on-surface focus:border-primary outline-none';
+  'w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-4 py-2.5 text-on-surface focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/60';
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  htmlFor,
+  required,
+  error,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  required?: boolean;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <label className="block">
-      <span className="block text-xs uppercase tracking-widest text-on-surface-variant mb-2">{label}</span>
+    <label className="block" htmlFor={htmlFor}>
+      <span className="block text-xs uppercase tracking-widest text-on-surface-variant mb-2">
+        {label}
+        {required && <span className="text-error" aria-hidden="true"> *</span>}
+      </span>
       {children}
+      {error && (
+        <span id={htmlFor ? `${htmlFor}-error` : undefined} className="mt-1 block text-xs text-error">
+          {error}
+        </span>
+      )}
     </label>
   );
 }

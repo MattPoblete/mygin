@@ -7,6 +7,9 @@ import { formatPrice } from '@/lib/cta';
 import QtyStepper from '@/components/shop/QtyStepper';
 import Icon from '@/components/ui/Icon';
 
+// Tarifa plana de despacho (espejo de SHIPPING_FLAT_CLP en lib/server/checkout.ts).
+const SHIPPING_FLAT_CLP = 3990;
+
 /**
  * app/(shop)/carrito/page.tsx — Carrito de compra.
  *
@@ -102,12 +105,20 @@ export default function CarritoPage() {
               <div className="mt-6 flex items-center justify-between text-sm text-on-surface-variant">
                 <span>{count} {count === 1 ? 'producto' : 'productos'}</span>
               </div>
+              <div className="mt-2 flex items-center justify-between border-t border-outline-variant/20 pt-4 text-sm text-on-surface-variant">
+                <span>Subtotal</span>
+                <span className="tabular-nums">${formatPrice(subtotal)}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-sm text-on-surface-variant">
+                <span>Despacho</span>
+                <span className="tabular-nums">${formatPrice(SHIPPING_FLAT_CLP)}</span>
+              </div>
               <div className="mt-2 flex items-center justify-between border-t border-outline-variant/20 pt-4">
-                <span className="text-on-surface">Subtotal</span>
-                <span className="font-headline text-2xl text-primary">${formatPrice(subtotal)}</span>
+                <span className="text-on-surface">Total</span>
+                <span className="font-headline text-2xl text-primary">${formatPrice(subtotal + SHIPPING_FLAT_CLP)}</span>
               </div>
               <p className="mt-2 text-xs text-on-surface-variant/70">
-                El total final (despacho e impuestos) se calcula en el pago.
+                IVA incluido. El total final se confirma en el pago.
               </p>
 
               {/* Checkout — worktree B. */}
