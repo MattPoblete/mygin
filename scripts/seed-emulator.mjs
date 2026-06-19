@@ -43,6 +43,10 @@ const products = [
     shortDesc: '750 ml · Sin stock', longDesc: 'Producto sin stock para probar el estado agotado.',
     images: ['/assets/images/assets/botella_naturaleza.webp'], price: 19990, currency: 'CLP',
     stock: 0, stockReserved: 0, lowStockThreshold: 6, sku: 'MYGIN-750-OUT', active: true, featured: false, badge: null },
+  { slug: 'mygin-concurrencia', name: 'MyGin — Concurrencia (test)', type: 'gin',
+    shortDesc: '750 ml · producto de prueba de concurrencia', longDesc: 'Solo para el e2e de overselling.',
+    images: ['/assets/images/assets/botella_naturaleza.webp'], price: 17990, currency: 'CLP',
+    stock: 5, stockReserved: 0, lowStockThreshold: 6, sku: 'MYGIN-750-CONC', active: true, featured: false, badge: null },
 ];
 
 const coupons = [
