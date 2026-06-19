@@ -105,6 +105,9 @@ const site = {
     instagram: 'mygin.cl',
     instagramUrl: 'https://instagram.com/mygin.cl',
     email: 'destileriamygin@gmail.com',
+    /** Número en formato legible para mostrar y dígitos puros para el enlace wa.me */
+    whatsapp: '+56 9 4029 6196',
+    whatsappUrl: 'https://wa.me/56940296196',
     origin: 'Villarrica, Araucanía',
     coordinates: '39°S · 72°O',
     year: '2025',
@@ -116,7 +119,6 @@ const site = {
       { label: 'Dónde comprar', href: '#distribuidores' },
       { label: 'El Gin', href: '#producto' },
       { label: 'Botánicos', href: '#botanicos' },
-      { label: 'Recetas', href: '#recetas' },
     ],
     cta: { label: 'Tienda', href: '/tienda' },
   },
@@ -125,7 +127,7 @@ const site = {
     crest: 'Villarrica · Araucanía · 39°S',
     /** La 2da línea termina con `accent` (palabra/segmento en carmesí). */
     headline: 'El sur de Chile,\nen una copa.',
-    accent: 'copa.',
+    accent: 'copa',
     tagline: 'El gin que se vive.',
     subheadline:
       'Gin contemporáneo chileno: 11 botánicos destilados a orillas del Río Pedregoso, en las afueras de Villarrica, Región de la Araucanía.',
@@ -288,9 +290,9 @@ const site = {
 
   distribuidores: {
     label: 'Dónde comprar',
-    headline: 'Ya estamos\nen tu ciudad.',
+    headline: 'Cerca tuyo\nen la Araucanía.',
     sublabel:
-      'Encuéntranos en bares, restaurantes y botillerías de la zona lacustre de la Araucanía.',
+      'Estamos en bares, restaurantes y botillerías de la zona lacustre de la Araucanía. ¿Lejos de la zona? Pídelo online: despachamos a todo Chile.',
     ciudades: [
       {
         ciudad: 'Pucón',
@@ -397,11 +399,25 @@ const site = {
   },
 
   footer: {
-    links: [
-      { label: 'Drink Responsibly', href: '#' },
-      { label: 'Equipo', href: '/equipo' },
-      { label: 'Contacto', href: '/contacto' },
-      { label: 'Instagram', href: 'https://instagram.com/mygin.cl' },
+    /** Columnas del footer — única fuente de verdad (Footer.tsx las consume). */
+    columns: [
+      {
+        title: 'Explorar',
+        links: [
+          { label: 'Inicio', href: '#top' },
+          { label: 'Dónde comprar', href: '#distribuidores' },
+          { label: 'El Gin', href: '#producto' },
+          { label: 'Botánicos', href: '#botanicos' },
+          { label: 'Tienda', href: '/tienda' },
+        ],
+      },
+      {
+        title: 'Legal',
+        links: [
+          { label: 'Equipo', href: '/equipo' },
+          { label: 'Contacto', href: '/contacto' },
+        ],
+      },
     ],
     copy: '© 2025 MyGin. Crafted en Villarrica, Araucanía, Chile.',
     note: 'Venta exclusiva a mayores de 18 años.',

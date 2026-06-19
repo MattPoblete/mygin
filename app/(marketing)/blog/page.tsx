@@ -47,10 +47,11 @@ export default async function BlogIndexPage() {
               >
                 <div className="aspect-[4/3] bg-surface-container-high overflow-hidden">
                   {post.coverImage ? (
+                    // alt="" — portada decorativa que duplica el <h2> adyacente.
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={post.coverImage}
-                      alt={post.title}
+                      alt=""
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : null}

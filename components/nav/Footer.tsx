@@ -9,27 +9,14 @@ import site from '@/content/site';
 export default function Footer() {
   const { brand, footer } = site;
 
-  const explorar = [
-    ['Inicio', '#top'],
-    ['Dónde comprar', '#distribuidores'],
-    ['El Gin', '#producto'],
-    ['Botánicos', '#botanicos'],
-    ['Tienda', '/tienda'],
-  ];
-  const legal = [
-    ['Equipo', '/equipo'],
-    ['Contacto', '/contacto'],
-    ['Bebe responsablemente', '#'],
-  ];
-
   const linkStyle = { fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--crimson)', textDecoration: 'none' as const };
-  const Col = ({ title, items }: { title: string; items: string[][] }) => (
+  const Col = ({ title, items }: { title: string; items: ReadonlyArray<{ label: string; href: string }> }) => (
     <div>
       <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--warm-gray)', marginBottom: 14 }}>
         {title}
       </div>
       <ul className="list-none p-0 m-0 flex flex-col gap-2.5">
-        {items.map(([label, href]) => (
+        {items.map(({ label, href }) => (
           <li key={label}>
             {href.startsWith('/') ? (
               <Link href={href} style={linkStyle}>{label}</Link>
@@ -57,8 +44,9 @@ export default function Footer() {
             </a>
           </div>
           <div className="flex flex-wrap gap-14">
-            <Col title="Explorar" items={explorar} />
-            <Col title="Legal" items={legal} />
+            {footer.columns.map((col) => (
+              <Col key={col.title} title={col.title} items={col.links} />
+            ))}
           </div>
         </div>
 

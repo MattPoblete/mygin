@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import site from '@/content/site';
@@ -9,10 +9,14 @@ import site from '@/content/site';
  * Navbar — calca ui_kits/website/Nav.jsx: sticky 64px, navy translúcido + blur,
  * wordmark MY/GIN, subrayado carmesí en link activo, icono carrito. Conserva
  * el scroll-spy (IntersectionObserver) y el menú mobile.
+ *
+ * El menú mobile usa <dialog>.showModal() para obtener gratis focus-trap, Escape,
+ * inert del resto del documento, bloqueo de scroll (top-layer) y restauración de foco.
  */
 export default function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>('');
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
 
   // Fuera de la landing, las anclas (#top…) deben volver a "/#top"; en "/" se quedan
@@ -20,28 +24,56 @@ export default function Navbar() {
   const resolveHref = (href: string) =>
     href.startsWith('#') && pathname !== '/' ? `/${href}` : href;
 
+  // Scroll-spy: activa la sección más cercana al top de la ventana y limpia cuando
+  // ninguna está en la banda superior → el subrayado no queda "pegado".
   useEffect(() => {
-    const sections = document.querySelectorAll<HTMLElement>('section[id]');
+    if (pathname !== '/') {
+      setActiveId('');
+      return;
+    }
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('section[id]'));
     if (!sections.length) return;
+
+    const visible = new Map<string, number>();
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveId(entry.target.id);
-        });
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.set(entry.target.id, entry.boundingClientRect.top);
+          else visible.delete(entry.target.id);
+        }
+        if (!visible.size) {
+          setActiveId('');
+          return;
+        }
+        // La sección cuyo top está más cerca de la banda superior gana.
+        const nearest = [...visible.entries()].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
+        setActiveId(nearest[0][0]);
       },
-      { threshold: 0.4 },
+      // Banda de detección bajo el navbar sticky; ignora el resto del viewport.
+      { rootMargin: '-72px 0px -65% 0px', threshold: 0 },
     );
     sections.forEach((s) => observer.observe(s));
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
+
+  // Abrir/cerrar el <dialog> de forma controlada por estado.
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (mobileOpen && !dialog.open) dialog.showModal();
+    else if (!mobileOpen && dialog.open) dialog.close();
+  }, [mobileOpen]);
 
   const linkClass = (href: string) => {
-    const isActive = href === `#${activeId}`;
+    const isActive =
+      href === `#${activeId}` || (href === site.nav.cta.href && pathname === site.nav.cta.href);
     return [
       'font-body text-sm tracking-wide transition-colors pb-1 border-b-2',
       isActive ? 'text-white border-[var(--crimson)]' : 'text-white/90 border-transparent hover:text-white',
     ].join(' ');
   };
+
+  const closeMenu = () => setMobileOpen(false);
 
   const CartIcon = (
     <Link href="/carrito" aria-label="Carrito" className="relative flex items-center text-white">
@@ -56,8 +88,6 @@ export default function Navbar() {
   return (
     <>
       <header
-        role="navigation"
-        aria-label="Navegación principal"
         className="fixed top-0 w-full z-50 flex items-center justify-between px-8 md:px-12"
         style={{
           minHeight: 'var(--nav-height)',
@@ -72,7 +102,7 @@ export default function Navbar() {
         </Link>
 
         {/* Links desktop */}
-        <nav className="hidden md:flex items-center gap-7" style={{ height: 'var(--nav-height)' }}>
+        <nav aria-label="Navegación principal" className="hidden md:flex items-center gap-7" style={{ height: 'var(--nav-height)' }}>
           {site.nav.links.map((link) => {
             const href = resolveHref(link.href);
             return href.startsWith('#') ? (
@@ -96,8 +126,8 @@ export default function Navbar() {
           {CartIcon}
           <button
             type="button"
-            className="flex items-center p-1 text-white"
-            aria-label="Menú"
+            className="flex items-center p-3 -mr-3 text-white"
+            aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
             onClick={() => setMobileOpen((v) => !v)}
@@ -117,36 +147,60 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Menú mobile */}
-      <div
+      {/* Menú mobile — <dialog> nativo: focus-trap + Escape + inert del resto + scroll-lock. */}
+      <dialog
+        ref={dialogRef}
         id="mobile-menu"
-        role="menu"
+        aria-label="Menú"
+        onClose={closeMenu}
+        onCancel={closeMenu}
+        // Clic en el backdrop (fuera del <nav>) cierra el menú.
         onClick={(e) => {
-          if ((e.target as HTMLElement).tagName === 'A') setMobileOpen(false);
+          if (e.target === dialogRef.current) closeMenu();
         }}
-        className={`fixed top-0 left-0 w-full h-screen z-40 flex flex-col justify-center items-center gap-8 transition-transform duration-300 ${
-          mobileOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{ background: 'var(--navy-deep)' }}
+        style={{
+          margin: 0,
+          padding: 0,
+          maxWidth: '100vw',
+          maxHeight: '100dvh',
+          width: '100vw',
+          height: '100dvh',
+          border: 'none',
+          background: 'var(--navy-deep)',
+          // Inline display gana al UA display:none; controlamos visibilidad por estado.
+          display: mobileOpen ? 'flex' : 'none',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
-        {site.nav.links.map((link) => {
-          const href = resolveHref(link.href);
-          const className =
-            'font-headline text-2xl text-white hover:opacity-80 uppercase tracking-wide transition-opacity';
-          return href.startsWith('#') ? (
-            <a key={link.href} href={href} role="menuitem" className={className}>
-              {link.label}
-            </a>
-          ) : (
-            <Link key={link.href} href={href} role="menuitem" className={className} onClick={() => setMobileOpen(false)}>
-              {link.label}
-            </Link>
-          );
-        })}
-        <Link href={site.nav.cta.href} className="btn-primary" style={{ marginTop: 8 }}>
-          {site.nav.cta.label}
-        </Link>
-      </div>
+        <nav aria-label="Menú móvil" className="flex flex-col items-center gap-8">
+          <ul className="flex flex-col items-center gap-8 list-none p-0 m-0">
+            {site.nav.links.map((link) => {
+              const href = resolveHref(link.href);
+              const className =
+                'font-headline text-2xl text-white hover:opacity-80 uppercase tracking-wide transition-opacity';
+              return (
+                <li key={link.href}>
+                  {href.startsWith('#') ? (
+                    <a href={href} className={className} onClick={closeMenu}>
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link href={href} className={className} onClick={closeMenu}>
+                      {link.label}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+            <li>
+              <Link href={site.nav.cta.href} className="btn-primary" style={{ marginTop: 8 }} onClick={closeMenu}>
+                {site.nav.cta.label}
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      </dialog>
     </>
   );
 }
