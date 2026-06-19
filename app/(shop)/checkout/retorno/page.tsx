@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartProvider';
 import { getOrderStatus, type OrderStatusResult } from '@/lib/checkout';
 import { formatPrice } from '@/lib/cta';
+import { ORDER_POLL_DELAYS } from '@/lib/constants';
 
 /**
  * app/(shop)/checkout/retorno/page.tsx — Página de retorno de Flow (urlReturn).
@@ -17,8 +18,6 @@ import { formatPrice } from '@/lib/cta';
  */
 // Estados terminales: ya no tiene sentido seguir consultando.
 const TERMINAL = new Set(['paid', 'fulfilled', 'failed', 'cancelled', 'expired']);
-// Backoff entre auto-consultas (ms). Tras agotarlas, mostramos el botón manual.
-const POLL_DELAYS = [1500, 2500, 4000, 6000];
 
 function RetornoInner() {
   const params = useSearchParams();
@@ -69,8 +68,8 @@ function RetornoInner() {
         setAutoPolling(false);
         return;
       }
-      if (attempt < POLL_DELAYS.length) {
-        timers.push(setTimeout(tick, POLL_DELAYS[attempt++]));
+      if (attempt < ORDER_POLL_DELAYS.length) {
+        timers.push(setTimeout(tick, ORDER_POLL_DELAYS[attempt++]));
       } else {
         setAutoPolling(false);
       }

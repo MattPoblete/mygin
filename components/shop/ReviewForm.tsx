@@ -12,13 +12,13 @@
 import { useState } from 'react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
+import { REVIEW_MAX_BODY } from '@/lib/constants';
 
 type Status = 'idle' | 'sending' | 'success' | 'error';
 type FieldName = 'name' | 'email' | 'body';
 type FieldErrors = Partial<Record<FieldName, string>> & { rating?: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_BODY = 2000;
 
 function validateField(name: FieldName, value: string): string {
   const v = value.trim();
@@ -29,7 +29,7 @@ function validateField(name: FieldName, value: string): string {
   }
   if (name === 'body') {
     if (!v) return 'Escribe tu reseña.';
-    return v.length <= MAX_BODY ? '' : `Máximo ${MAX_BODY} caracteres.`;
+    return v.length <= REVIEW_MAX_BODY ? '' : `Máximo ${REVIEW_MAX_BODY} caracteres.`;
   }
   return '';
 }
@@ -194,7 +194,7 @@ export default function ReviewForm({
           name="body"
           rows={4}
           required
-          maxLength={MAX_BODY}
+          maxLength={REVIEW_MAX_BODY}
           aria-required="true"
           aria-invalid={errors.body ? true : undefined}
           aria-describedby={errors.body ? 'rf-body-error' : undefined}

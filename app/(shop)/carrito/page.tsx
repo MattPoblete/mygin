@@ -4,11 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart/CartProvider';
 import { formatPrice } from '@/lib/cta';
+import { SHIPPING_FLAT_CLP } from '@/lib/constants';
 import QtyStepper from '@/components/shop/QtyStepper';
 import Icon from '@/components/ui/Icon';
-
-// Tarifa plana de despacho (espejo de SHIPPING_FLAT_CLP en lib/server/checkout.ts).
-const SHIPPING_FLAT_CLP = 3990;
 
 /**
  * app/(shop)/carrito/page.tsx — Carrito de compra.

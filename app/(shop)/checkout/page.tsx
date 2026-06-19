@@ -6,12 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartProvider';
 import { formatPrice } from '@/lib/cta';
 import { createOrder, validateCoupon, isValidRut, type ValidateCouponResult } from '@/lib/checkout';
+import { SHIPPING_FLAT_CLP, PAY_TIMEOUT_MS } from '@/lib/constants';
 import type { CustomerInfo } from '@/lib/types.order';
-
-// Tarifa plana de despacho (espejo de SHIPPING_FLAT_CLP en lib/server/checkout.ts).
-const SHIPPING_FLAT_CLP = 3990;
-// Tras cuánto tiempo sin confirmación damos por colgado el pago.
-const PAY_TIMEOUT_MS = 5 * 60 * 1000;
 
 type FieldErrors = Partial<Record<string, string>>;
 
