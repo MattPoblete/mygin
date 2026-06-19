@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Product } from '@/lib/types';
+import { serializeProduct } from '@/lib/products';
 import SectionHeader from '@/components/ui/SectionHeader';
 import ProductCard from '@/components/shop/ProductCard';
 
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 async function getActiveProducts(): Promise<Product[]> {
   const snap = await getDocs(query(collection(db, 'products'), where('active', '==', true)));
   return snap.docs
-    .map((d) => ({ id: d.id, ...d.data() }) as Product)
+    .map(serializeProduct)
     .sort((a, b) => Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name));
 }
 

@@ -1,48 +1,63 @@
 import site from '@/content/site';
 import Icon from '@/components/ui/Icon';
-import SectionHeader from '@/components/ui/SectionHeader';
+import SectionTitle from '@/components/ui/SectionTitle';
 import CtaButton from '@/components/ui/CtaButton';
+import Card from '@/components/ui/Card';
 
+/**
+ * Distribuidores — calca ui_kits/website/PointsOfSale.jsx:
+ * sección cream, tarjetas blancas con icono stroke carmesí y listas con viñetas carmesí.
+ */
 export default function Distribuidores() {
   const d = site.distribuidores;
 
   return (
-    <section className="py-32 bg-surface" id="distribuidores" aria-labelledby="distribuidores-headline">
-      <div className="container mx-auto px-8 md:px-12">
-        <div className="text-center mb-16">
-          <SectionHeader id="distribuidores-headline" label={d.label} headline={d.headline} sublabel={d.sublabel} />
-        </div>
+    <section id="distribuidores" className="px-8 md:px-12 py-16 md:py-24" style={{ background: 'var(--cream)' }}>
+      <div className="mx-auto" style={{ maxWidth: 'var(--container)' }}>
+        <SectionTitle
+          align="center"
+          tone="light"
+          className="reveal"
+          style={{ alignItems: 'center', maxWidth: 640, margin: '0 auto 56px' }}
+          eyebrow={d.label}
+          title={d.headline.replace('\n', ' ')}
+          subtitle={d.sublabel}
+        />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {d.ciudades.map((ciudad, i) => (
-            <div
+            <Card
               key={ciudad.ciudad}
-              className={`bg-surface-container-low p-8 rounded-2xl reveal reveal--delay-${i + 1}`}
+              tone="light"
+              className={`reveal reveal--delay-${(i % 3) + 1}`}
+              style={{ background: 'var(--white)', boxShadow: 'var(--shadow-sm)', padding: 'var(--sp-xl)', display: 'flex', flexDirection: 'column', gap: 20 }}
             >
-              <div className="flex items-center gap-3 mb-6">
-                <Icon name={ciudad.icon} fill={0} className="text-secondary" />
-                <h3 className="font-headline text-xl tracking-tighter text-on-surface">{ciudad.ciudad}</h3>
+              <div className="flex items-center gap-3">
+                <Icon name={ciudad.icon} fill={0} style={{ color: 'var(--crimson)' }} />
+                <h3 className="font-headline" style={{ fontWeight: 700, fontSize: 22, color: 'var(--navy-dark)' }}>
+                  {ciudad.ciudad}
+                </h3>
               </div>
-              <ul className="space-y-3">
+              <ul className="flex flex-col gap-4 list-none p-0 m-0">
                 {ciudad.puntos.map((punto) => (
-                  <li key={punto.nombre} className="flex items-start gap-2">
-                    <span className="text-secondary mt-1 text-xs">●</span>
+                  <li key={punto.nombre} className="flex items-start gap-3">
+                    <span aria-hidden className="flex-none rounded-full" style={{ width: 6, height: 6, background: 'var(--crimson)', marginTop: 8 }} />
                     <div>
-                      <span className="text-sm text-on-surface">{punto.nombre}</span>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--navy-dark)' }}>{punto.nombre}</div>
                       {punto.nota && (
-                        <span className="block text-xs text-secondary font-bold uppercase tracking-wider mt-0.5">
+                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--crimson)', marginTop: 4 }}>
                           {punto.nota}
-                        </span>
+                        </div>
                       )}
                     </div>
                   </li>
                 ))}
               </ul>
-            </div>
+            </Card>
           ))}
         </div>
 
-        <div className="text-center">
+        <div className="flex justify-center mt-12">
           <CtaButton cta={d.onlineCta} />
         </div>
       </div>

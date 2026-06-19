@@ -1,60 +1,76 @@
 import site from '@/content/site';
 import CtaButton from '@/components/ui/CtaButton';
+import Badge from '@/components/ui/Badge';
 
+/**
+ * Hero — calca ui_kits/website/Hero.jsx del MyGin Design System:
+ * gradiente radial navy, botella en duotono (luminosity) desvaneciendo a la izquierda,
+ * eyebrow heráldica, titular Playfair MAYÚS con palabra en carmesí, tagline Cormorant y chips de specs.
+ */
 export default function Hero() {
-  const { hero, brand } = site;
+  const { hero } = site;
   const [line1, line2 = ''] = hero.headline.split('\n');
+  const accentIdx = hero.accent ? line2.lastIndexOf(hero.accent) : -1;
+  const line2Pre = accentIdx >= 0 ? line2.slice(0, accentIdx) : line2;
 
   return (
     <section
-      className="relative min-h-screen flex items-center overflow-hidden pt-20"
+      id="top"
       aria-labelledby="hero-headline"
+      className="relative flex items-center overflow-hidden px-8 md:px-12 pt-28 pb-20 md:min-h-screen"
+      style={{ background: 'radial-gradient(120% 120% at 80% 10%, #14304a 0%, var(--navy-dark) 55%, var(--navy-deep) 100%)' }}
     >
-      {/* Imagen de fondo */}
-      <div className="absolute inset-0 z-0 ml-[700px]">
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={hero.bgImage}
-          alt=""
-          aria-hidden="true"
-          loading="eager"
-          className="w-full h-full object-cover grayscale opacity-40"
-        />
-      </div>
+      {/* Botella en duotono navy, foco a la derecha, desvaneciendo a la izquierda */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url(${hero.bgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'right center',
+          backgroundColor: 'var(--navy-light)',
+          backgroundBlendMode: 'luminosity',
+          WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 64%)',
+          maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 64%)',
+        }}
+      />
+      {/* Wash de legibilidad tras el texto */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-0"
+        style={{ background: 'linear-gradient(to right, rgba(15,36,53,.82) 0%, rgba(15,36,53,.45) 42%, rgba(15,36,53,0) 70%)' }}
+      />
 
-      {/* Contenido */}
-      <div className="container mx-auto px-8 md:px-12 relative z-20">
-        <div className="max-w-4xl">
-          <span className="text-secondary font-label uppercase tracking-[0.4em] text-xs mb-6 block">
-            {hero.label}
-          </span>
-          <h1
-            id="hero-headline"
-            className="font-headline text-6xl md:text-8xl leading-tight mb-8 tracking-tighter reveal"
-          >
-            {line1}
-            <br />
-            <span className="italic text-primary">{line2}</span>
-          </h1>
-          <p className="text-on-surface-variant text-lg max-w-md mb-12 reveal reveal--delay-1">
-            {hero.subheadline}
-          </p>
-          <div className="flex flex-wrap gap-6 reveal reveal--delay-2">
-            {hero.ctas.map((cta) => (
-              <CtaButton key={cta.label} cta={cta} />
-            ))}
-          </div>
+      <div className="relative z-10 max-w-xl">
+        <span className="mg-crest-eyebrow">{hero.crest}</span>
+        <h1
+          id="hero-headline"
+          className="reveal font-headline uppercase text-white mt-5"
+          style={{ fontWeight: 800, fontSize: 'clamp(40px, 11vw, 76px)', lineHeight: 1.04, letterSpacing: '1.5px' }}
+        >
+          {line1}
+          <br />
+          {line2Pre}
+          {accentIdx >= 0 && <span style={{ color: 'var(--crimson)' }}>{hero.accent}</span>}
+        </h1>
+        <p className="mg-tagline mt-5" style={{ fontSize: 'clamp(20px, 3vw, 24px)', color: 'var(--cream)' }}>
+          {hero.tagline}
+        </p>
+        <p className="mt-5 max-w-md" style={{ fontFamily: 'var(--font-body)', fontWeight: 300, lineHeight: 1.65, color: 'var(--warm-gray)' }}>
+          {hero.subheadline}
+        </p>
+        <div className="flex flex-wrap gap-4 mt-9">
+          {hero.ctas.map((cta) => (
+            <CtaButton key={cta.label} cta={cta} />
+          ))}
         </div>
-      </div>
-
-      {/* Coordenadas — desktop */}
-      <div className="absolute bottom-12 right-12 z-20 hidden lg:flex flex-col items-end gap-1">
-        <span className="text-[0.6rem] uppercase tracking-widest text-on-surface-variant">Destilado en</span>
-        <span className="font-headline text-xl">{brand.coordinates}</span>
-        <span className="text-[0.6rem] uppercase tracking-widest text-on-surface-variant">
-          Villarrica, Araucanía
-        </span>
+        <div className="flex flex-wrap gap-2.5 mt-7">
+          {hero.badges.map((b, i) => (
+            <Badge key={b} tone={i === 0 ? 'outline' : i === 1 ? 'navy' : 'cream'}>
+              {b}
+            </Badge>
+          ))}
+        </div>
       </div>
     </section>
   );

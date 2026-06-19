@@ -45,6 +45,7 @@ export interface Product {
   /** Rating agregado (actualizado por Function al aprobar reseñas). */
   ratingSum?: number;
   ratingCount?: number;
-  createdAt: FirestoreTimestamp;
-  updatedAt: FirestoreTimestamp;
+  /** Millis (serializados desde el Timestamp de Firestore para cruzar a client). */
+  createdAt: number | null;
+  updatedAt: number | null;
 }

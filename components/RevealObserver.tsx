@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 /**
  * RevealObserver — porta js/animations.js.
@@ -12,6 +13,10 @@ import { useEffect } from 'react';
  * Idempotente bajo React Strict Mode (doble montaje en dev).
  */
 export default function RevealObserver() {
+  // El layout persiste entre navegaciones; sin esto el observer solo corre en la
+  // primera carga y los .reveal de páginas re-montadas quedan en opacity:0.
+  const pathname = usePathname();
+
   useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>('.reveal:not(.is-visible)');
     if (!elements.length) return;
@@ -36,7 +41,7 @@ export default function RevealObserver() {
 
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
 
   return null;
 }

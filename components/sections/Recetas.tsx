@@ -20,7 +20,9 @@ export default function Recetas() {
             >
               {/* Header */}
               <div className="p-8 pb-4">
-                <span className="text-4xl block mb-4">{coctel.emoji}</span>
+                <span className="font-headline text-primary block mb-3" style={{ fontWeight: 800, fontSize: 16, letterSpacing: 1 }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
                 <h3 className="font-headline text-2xl tracking-tighter text-on-surface mb-3">{coctel.name}</h3>
                 <p className="text-on-surface-variant text-sm leading-relaxed">{coctel.desc}</p>
               </div>

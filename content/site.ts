@@ -35,6 +35,10 @@ export interface Botanical {
   name: string;
   icon: string;
   desc: string;
+  /** Nombre de archivo en /assets/images/ingredientes/<img>.webp */
+  img: string;
+  /** Tile destacado del bento ("El corazón de la receta") */
+  featured?: boolean;
 }
 
 export interface Moment {
@@ -49,7 +53,6 @@ export interface RecipeIngredient {
 
 export interface Recipe {
   name: string;
-  emoji: string;
   desc: string;
   ingredients: RecipeIngredient[];
   method: string;
@@ -71,6 +74,17 @@ export interface Ciudad {
   ciudad: string;
   icon: string;
   puntos: DistribuidorPunto[];
+}
+
+export interface ShopItem {
+  name: string;
+  spec: string;
+  price: number;
+  badge: string;
+  img: string;
+  href: string;
+  blurb?: string;
+  featured?: boolean;
 }
 
 export interface PriceTier {
@@ -98,23 +112,28 @@ const site = {
 
   nav: {
     links: [
-      { label: 'Nosotros', href: '#historia' },
-      { label: 'El Gin', href: '#producto' },
-      { label: 'Recetas', href: '#recetas' },
+      { label: 'Inicio', href: '#top' },
       { label: 'Dónde comprar', href: '#distribuidores' },
+      { label: 'El Gin', href: '#producto' },
+      { label: 'Botánicos', href: '#botanicos' },
+      { label: 'Recetas', href: '#recetas' },
     ],
-    cta: { label: 'Pedir ahora', href: '/tienda' },
+    cta: { label: 'Tienda', href: '/tienda' },
   },
 
   hero: {
-    label: 'Gin Contemporáneo Chileno · Araucanía',
-    headline: 'El sabor que\nsiempre fue chileno.',
+    crest: 'Villarrica · Araucanía · 39°S',
+    /** La 2da línea termina con `accent` (palabra/segmento en carmesí). */
+    headline: 'El sur de Chile,\nen una copa.',
+    accent: 'copa.',
+    tagline: 'El gin que se vive.',
     subheadline:
-      'Destilado a las orillas del Río Pedregoso, con botánicos que ya conoces: huesillo, tomillo y 9 más.',
-    bgImage: '/assets/images/comunidad.webp',
+      'Gin contemporáneo chileno: 11 botánicos destilados a orillas del Río Pedregoso, en las afueras de Villarrica, Región de la Araucanía.',
+    bgImage: '/assets/images/assets/botella_naturaleza.webp',
+    badges: ['43°GL', '750 ML', '11 botánicos'],
     ctas: [
-      { label: 'Conoce el Gin', type: 'primary', href: '#producto' },
-      { label: 'Dónde comprarlo', type: 'outline', href: '#distribuidores' },
+      { label: 'Comprar ahora', type: 'primary', action: 'shop' },
+      { label: 'Conoce el gin', type: 'outline', href: '#producto' },
     ] as Cta[],
   },
 
@@ -138,10 +157,17 @@ const site = {
   },
 
   producto: {
-    label: 'El Producto',
+    label: 'El Gin',
     headline: '11 botánicos.\nUn solo Chile.',
-    body: 'MyGin es un gin contemporáneo de alta expresión botánica. El huesillo le da un dulzor frutal único, el tomillo aporta el aroma herbal intenso, y los 9 botánicos restantes completan un perfil cítrico, cálido y redondo que no encontrarás en ningún gin importado.',
-    image: '/assets/images/assets/botella_naturaleza.webp',
+    body: 'Un gin contemporáneo chileno, destilado en pequeños lotes a orillas del Río Pedregoso. Once botánicos liderados por el huesillo, el sabor más chileno del mundo.',
+    image: '/assets/images/assets/botella.webp',
+    price: 17990,
+    badges: ['11 botánicos', '43°GL', '750 ML'],
+    tastingNotes: [
+      { k: 'Nariz', v: 'Enebro, cítricos deshidratados y un fondo herbal de tomillo.' },
+      { k: 'Boca', v: 'Dulzor frutal del huesillo con cardamomo y un toque especiado.' },
+      { k: 'Final', v: 'Largo, con pimienta negra y clavo de olor que se recuerdan.' },
+    ],
     sensorProfile: [
       { icon: 'air', label: 'Aroma', value: 'Herbal intenso con tomillo fresco' },
       { icon: 'water_drop', label: 'Sabor', value: 'Cítrico brillante con dulzor de huesillo' },
@@ -165,17 +191,17 @@ const site = {
       },
     ] as Benefit[],
     botanicals: [
-      { name: 'Huesillo', icon: 'sunny', desc: 'Durazno deshidratado, el sabor más chileno del mundo. Aporta dulzor frutal y profundidad única.' },
-      { name: 'Tomillo', icon: 'forest', desc: 'Recolectado en los cerros de la Araucanía. Aroma herbal intenso que define el carácter de MyGin.' },
-      { name: 'Enebro', icon: 'spa', desc: 'La base clásica de todo gin. Frescura y el carácter junípero que une todos los botánicos.' },
-      { name: 'Canela', icon: 'local_cafe', desc: 'Calidez especiada que redondea el final y le da cuerpo al conjunto.' },
-      { name: 'Cardamomo', icon: 'grass', desc: 'Complejidad aromática y un toque floral que eleva cada sorbo.' },
-      { name: 'Semillas de Cilantro', icon: 'scatter_plot', desc: 'Frescura cítrica suave que conecta los botánicos y aporta ligereza.' },
-      { name: 'Limón Deshidratado', icon: 'brightness_5', desc: 'Cítrico brillante que aparece desde el primer sorbo y se alarga en el final.' },
-      { name: 'Naranja Deshidratada', icon: 'circle', desc: 'Dulzor cítrico que equilibra los botánicos especiados y aporta redondez.' },
-      { name: 'Clavo de Olor', icon: 'star', desc: 'Calidez profunda y notas especiadas que agregan capas de sabor al gin.' },
-      { name: 'Pimienta Negra', icon: 'whatshot', desc: 'Picante sutil en el final que da personalidad y hace que el gin se recuerde.' },
-      { name: 'Raíz de Angélica', icon: 'psychology', desc: 'El botánico que une todo. Aporta profundidad herbácea y es el ancla del conjunto.' },
+      { name: 'Huesillo', icon: 'sunny', img: 'huesillo', featured: true, desc: 'Durazno deshidratado, el sabor más chileno del mundo. Aporta dulzor frutal y una profundidad única que define a MyGin.' },
+      { name: 'Tomillo', icon: 'forest', img: 'tomillo', desc: 'Recolectado en los cerros de la Araucanía. Aroma herbal intenso que define el carácter de MyGin.' },
+      { name: 'Enebro', icon: 'spa', img: 'enebro', desc: 'La base clásica de todo gin. Frescura y el carácter junípero que une todos los botánicos.' },
+      { name: 'Canela', icon: 'local_cafe', img: 'canela', desc: 'Calidez especiada que redondea el final y le da cuerpo al conjunto.' },
+      { name: 'Cardamomo', icon: 'grass', img: 'cardamomo', desc: 'Complejidad aromática y un toque floral que eleva cada sorbo.' },
+      { name: 'Semillas de Cilantro', icon: 'scatter_plot', img: 'semillas_de_cilantro', desc: 'Frescura cítrica suave que conecta los botánicos y aporta ligereza.' },
+      { name: 'Limón Deshidratado', icon: 'brightness_5', img: 'limones', desc: 'Cítrico brillante que aparece desde el primer sorbo y se alarga en el final.' },
+      { name: 'Naranja Deshidratada', icon: 'circle', img: 'naranjas', desc: 'Dulzor cítrico que equilibra los botánicos especiados y aporta redondez al conjunto.' },
+      { name: 'Clavo de Olor', icon: 'star', img: 'clavos_de_olor', desc: 'Calidez profunda y notas especiadas que agregan capas de sabor al gin.' },
+      { name: 'Pimienta Negra', icon: 'whatshot', img: 'pimienta_negra', desc: 'Picante sutil en el final que da personalidad y hace que el gin se recuerde.' },
+      { name: 'Raíz de Angélica', icon: 'psychology', img: 'raiz_de_ang', desc: 'El botánico que une todo. Aporta profundidad herbácea y es el ancla del conjunto.' },
     ] as Botanical[],
   },
 
@@ -198,7 +224,6 @@ const site = {
     items: [
       {
         name: 'Maqui Collins',
-        emoji: '🫐',
         desc: 'El azul profundo del maqui chileno con el sabor herbal de MyGin. Refrescante, frutoso y distinto a cualquier Collins que hayas tomado.',
         ingredients: [
           { qty: '2 oz', item: 'MyGin' },
@@ -211,7 +236,6 @@ const site = {
       },
       {
         name: 'Pepino Sour',
-        emoji: '🥒',
         desc: 'El pepino fresco potencia los botánicos herbales de MyGin. La albúmina da una espuma sedosa que hace que este sour sea visualmente imposible de ignorar.',
         ingredients: [
           { qty: '2 oz', item: 'MyGin' },
@@ -225,7 +249,6 @@ const site = {
       },
       {
         name: 'Pomelo Sour',
-        emoji: '🍊',
         desc: 'El pomelo amplifica los cítricos del MyGin y el huesillo aparece en el final. Simple de hacer, imposible de olvidar.',
         ingredients: [
           { qty: '2 oz', item: 'MyGin' },
@@ -302,6 +325,33 @@ const site = {
       },
     ] as Ciudad[],
     onlineCta: { label: 'Pedir online', href: '/tienda', type: 'primary' } as Cta,
+  },
+
+  tienda: {
+    label: 'Tienda',
+    headline: 'Llévate el sur a casa',
+    sublabel: 'Despacho a todo Chile, directo desde la destilería en Villarrica.',
+    items: [
+      {
+        name: 'MyGin London Dry',
+        spec: '750 ML · 43°GL',
+        price: 17990,
+        badge: 'Insignia',
+        featured: true,
+        img: '/assets/images/assets/botella.webp',
+        href: '/producto/mygin-botella-individual',
+        blurb: 'Destilado en Villarrica con botánicos del bosque nativo. Cítrico, herbal y enebro al frente.',
+      },
+      {
+        name: 'Pack Amigos x2',
+        spec: '2 × 750 ML',
+        price: 32990,
+        badge: 'Ahorra $3.000',
+        img: '/assets/images/assets/promo_pack.webp',
+        href: '/producto/mygin-pack-amigos',
+      },
+    ] as ShopItem[],
+    cta: { label: 'Ver toda la tienda', href: '/tienda', type: 'outline' } as Cta,
   },
 
   precios: {

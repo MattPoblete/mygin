@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Product } from '@/lib/types';
+import { serializeProduct } from '@/lib/products';
 import { formatPrice } from '@/lib/cta';
 import { availableStock, isLowStock } from '@/lib/cart/stock';
 import AddToCartButton from '@/components/shop/AddToCartButton';
@@ -21,7 +22,7 @@ export const revalidate = 300;
 async function getProductBySlug(slug: string): Promise<Product | null> {
   const snap = await getDoc(doc(db, 'products', slug));
   if (!snap.exists()) return null;
-  const data = { id: snap.id, ...snap.data() } as Product;
+  const data = serializeProduct(snap);
   return data.active ? data : null;
 }
 

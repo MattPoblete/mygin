@@ -9,7 +9,32 @@ paralelización" en el plan.
 
 ---
 
-## ✅ Pago mockeado + imágenes (sesión actual)
+## ✅ Re-skin con MyGin Design System (claude.ai/design)
+
+- ✅ **Integración del design system** (`bd248bfd…`). Tokens portados a `globals.css`
+  (escalas `--sp/--radius/--shadow/--transition`, aliases navy/crimson/cream, utilidades
+  `.mg-eyebrow`/`.mg-rule`/`.mg-crest-eyebrow`; `.btn-*` con hover-oscurece + press-inset).
+- ✅ **Primitivas** `components/ui/{Button,Card,Badge,SectionTitle}.tsx` (inline-style + CSS vars).
+- ✅ **AgeGate** (`components/AgeGate.tsx`, +18, `sessionStorage`) montada en `layout.tsx`.
+- ✅ **Secciones** calcadas del UI kit: Hero (duotono + eyebrow heráldica + chips),
+  Producto (notas Nariz/Boca/Final), **Botanicals** (bento grid de fotos, nueva), Distribuidores
+  (cream + cards), **Shop/Tienda** (bento → /producto/[slug]), **Contacto** (reusa `ContactForm` real),
+  Navbar (MY/GIN + carrito) y Footer (navy-deep, global en `layout.tsx`). Resto con motivos vía `SectionHeader`.
+- ✅ **Copy nuevo** en `content/site.ts` (hero "El sur de Chile, en una copa.", chips 43°GL/750ML)
+  y **sin emoji** (recetas → numeración). Build limpio (22/22) y home 200 verificado.
+- ⬜ Revisión visual fina (responsive bento, máscaras duotono) en navegador.
+- ✅ **Fix navegación SPA** — `RevealObserver` re-observa por `usePathname` (al volver a
+  Inicio el contenido ya no quedaba en blanco); Navbar resuelve anclas a `/#hash` fuera
+  de `/` (vuelve a la landing en vez de `/tienda#top`).
+- ✅ **Fix carrito** — `serializeProduct` convierte Timestamps de `Product` a millis;
+  elimina el error "Only plain objects can be passed to Client Components" en el detalle.
+- ✅ **Auto-cancelar órdenes** — `POST /api/checkout/expire-orders` (protegida con
+  `CRON_SECRET`) cancela `awaiting_payment` >24h y libera stock (reusa `settleOrder`).
+  Operativo: setear `CRON_SECRET` + agendar cron externo (~1h) con header `x-cron-secret`.
+
+---
+
+## ✅ Pago mockeado + imágenes (sesión anterior)
 
 - ✅ **Pago Flow mockeado** — el checkout abre `/checkout/mock` en ventana nueva
   (aceptar/rechazar) y captura el resultado por `postMessage`. Backend portado de

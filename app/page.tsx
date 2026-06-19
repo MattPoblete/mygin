@@ -1,25 +1,21 @@
 import Hero from '@/components/sections/Hero';
 import Historia from '@/components/sections/Historia';
 import Producto from '@/components/sections/Producto';
-import Experiencia from '@/components/sections/Experiencia';
-import Recetas from '@/components/sections/Recetas';
-import Testimonios from '@/components/sections/Testimonios';
+import Botanicals from '@/components/sections/Botanicals';
 import Distribuidores from '@/components/sections/Distribuidores';
-import Precios from '@/components/sections/Precios';
-import UrgencyBanner from '@/components/sections/UrgencyBanner';
+import Shop from '@/components/sections/Shop';
+import Contacto from '@/components/sections/Contacto';
 
 export default function HomePage() {
   return (
     <main>
       <Hero />
-      <Historia />
-      <Producto />
-      <Experiencia />
-      <Recetas />
-      <Testimonios />
       <Distribuidores />
-      <Precios />
-      <UrgencyBanner />
+      <Producto />
+      <Historia />
+      <Botanicals />
+      <Shop />
+      <Contacto />
     </main>
   );
 }

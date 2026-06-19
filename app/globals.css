@@ -69,11 +69,107 @@
   --font-label:    "Montserrat", "Segoe UI", sans-serif;
   --font-elegant:  "Cormorant Garamond", Georgia, serif;
 
-  /* ── Border radius (architectural) ── */
-  --radius:      0.125rem;
-  --radius-lg:   0.25rem;
-  --radius-xl:   0.5rem;
+  /* ── Border radius (design system — redondeado) ── */
+  --radius:      0.25rem;  /* sm/inputs */
+  --radius-lg:   0.5rem;   /* md/botones */
+  --radius-xl:   0.75rem;  /* lg/cards */
   --radius-full: 0.75rem;
+}
+
+/* ============================================================
+   MyGin Design System — tokens portados (claude.ai/design)
+   Aliases + escalas que usan las primitivas y secciones.
+   ============================================================ */
+:root {
+  /* Navy / crimson / cream */
+  --navy:        #1a3a52;
+  --navy-dark:   #0f2435;
+  --navy-light:  #2d556f;
+  --navy-deep:   #081826;
+  --crimson:     #dc3545;
+  --crimson-dark:#b82835;
+  --cream:       #f8f5f0;
+  --cream-deep:  #efe9df;
+  --white:       #ffffff;
+  --warm-gray:   #b8b5b0;
+  --dark-gray:   #8b8884;
+  --surface-overlay: rgba(15, 36, 53, 0.82);
+  --rule-gold:   rgba(248, 245, 240, 0.55);
+
+  /* Fuentes (alias para las primitivas) */
+  --font-headline: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body:     "Montserrat", "Segoe UI", sans-serif;
+  --font-elegant:  "Cormorant Garamond", Georgia, serif;
+
+  /* Type scale + pesos + tracking usados por las primitivas */
+  --fs-xs: 0.75rem; --fs-sm: 0.875rem; --fs-base: 1rem;
+  --fw-light: 300; --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700; --fw-extrabold: 800;
+  --ls-normal: 0.5px; --ls-wide: 0.8px; --ls-wider: 1.2px; --ls-widest: 1.5px; --ls-mark: 3px;
+  --lh-snug: 1.3; --lh-relaxed: 1.6;
+
+  /* Espaciado (base 8px) */
+  --sp-xs: 4px; --sp-sm: 8px; --sp-md: 16px; --sp-lg: 24px;
+  --sp-xl: 32px; --sp-2xl: 48px; --sp-3xl: 64px; --sp-4xl: 96px;
+
+  /* Radios (design) */
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px; --radius-pill: 999px;
+
+  /* Sombras */
+  --shadow-sm:    0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:    0 4px 6px rgba(0,0,0,0.10);
+  --shadow-lg:    0 10px 15px rgba(0,0,0,0.20);
+  --shadow-xl:    0 20px 25px rgba(0,0,0,0.30);
+  --shadow-inset: inset 0 2px 4px rgba(0,0,0,0.20);
+
+  /* Motion */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+
+  /* Layout */
+  --container:   1200px;
+  --page-margin: 32px;
+  --nav-height:  64px;
+}
+
+/* ── Utilidades heráldicas (de tokens/base.css del design) ──── */
+.mg-eyebrow {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-mark);
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+.mg-tagline {
+  font-family: var(--font-elegant);
+  font-weight: var(--fw-light);
+  font-style: italic;
+  letter-spacing: var(--ls-wide);
+}
+/* Regla carmesí bajo títulos */
+.mg-rule {
+  width: 60px; height: 3px; border: 0;
+  background: var(--crimson);
+  margin: var(--sp-md) 0 var(--sp-xl);
+}
+/* Hairline grabada sobre navy */
+.mg-rule-engraved {
+  border: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rule-gold), transparent);
+}
+/* Eyebrow flanqueado por laureles ( · texto · ) */
+.mg-crest-eyebrow {
+  display: inline-flex; align-items: center; gap: var(--sp-md);
+  font-family: var(--font-elegant);
+  font-size: 1.25rem;
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
+  color: var(--warm-gray);
+}
+.mg-crest-eyebrow::before,
+.mg-crest-eyebrow::after {
+  content: ""; width: 36px; height: 1px; background: var(--rule-gold);
 }
 
 /* ── Material Symbols ───────────────────────────────────────── */
@@ -83,14 +179,29 @@
 
 /* ── Botones CTA (primary/outline) — identidad compartida ────── */
 .btn-primary {
-  @apply bg-primary text-on-primary px-10 py-4 font-bold tracking-widest uppercase text-xs rounded-lg transition-opacity;
+  @apply px-10 py-4 font-semibold tracking-widest uppercase text-xs inline-flex items-center justify-center gap-2;
+  background: var(--crimson);
+  color: var(--white);
+  border: 2px solid var(--crimson);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-base), border-color var(--transition-base),
+              transform var(--transition-fast), box-shadow var(--transition-fast);
 }
-.btn-primary:hover { @apply opacity-90; }
+.btn-primary:hover { background: var(--crimson-dark); border-color: var(--crimson-dark); }
+.btn-primary:active { box-shadow: var(--shadow-inset); transform: translateY(1px); }
 
+/* Ghost carmesí (tertiary del design): rellena en hover */
 .btn-outline {
-  @apply border border-outline-variant/40 text-secondary px-10 py-4 font-bold tracking-widest uppercase text-xs rounded-lg transition-all;
+  @apply px-10 py-4 font-semibold tracking-widest uppercase text-xs inline-flex items-center justify-center gap-2;
+  background: transparent;
+  color: var(--crimson);
+  border: 2px solid var(--crimson);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-base), color var(--transition-base),
+              transform var(--transition-fast), box-shadow var(--transition-fast);
 }
-.btn-outline:hover { @apply bg-surface-container-high; }
+.btn-outline:hover { background: var(--crimson); color: var(--white); }
+.btn-outline:active { box-shadow: var(--shadow-inset); transform: translateY(1px); }
 
 /* ── Scroll reveal (usado por <RevealObserver>) ─────────────── */
 .reveal {

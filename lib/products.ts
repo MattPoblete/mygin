@@ -16,11 +16,25 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  type DocumentData,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Product, ProductType } from '@/lib/types';
 
 const COLLECTION = 'products';
+
+/**
+ * Convierte un doc de Firestore a Product plano: los Timestamps createdAt/updatedAt
+ * pasan a millis (number) para poder cruzar el borde server→client component.
+ */
+export function serializeProduct(snap: { id: string; data(): DocumentData | undefined }): Product {
+  const { createdAt, updatedAt, ...rest } = (snap.data() ?? {}) as Record<string, unknown>;
+  const ms = (t: unknown) =>
+    t && typeof (t as { toMillis?: () => number }).toMillis === 'function'
+      ? (t as { toMillis(): number }).toMillis()
+      : null;
+  return { id: snap.id, ...rest, createdAt: ms(createdAt), updatedAt: ms(updatedAt) } as Product;
+}
 
 /** Campos editables desde el formulario de admin. */
 export interface ProductInput {
@@ -42,13 +56,13 @@ export interface ProductInput {
 
 export async function listProducts(): Promise<Product[]> {
   const snap = await getDocs(query(collection(db, COLLECTION), orderBy('createdAt', 'desc')));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Product);
+  return snap.docs.map(serializeProduct);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
   const ref = doc(db, COLLECTION, id);
   const snap = await getDoc(ref);
-  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Product) : null;
+  return snap.exists() ? serializeProduct(snap) : null;
 }
 
 /** Crea un producto usando el slug como docId (idempotente con el seed). */

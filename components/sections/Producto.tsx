@@ -1,94 +1,73 @@
 import site from '@/content/site';
-import Icon from '@/components/ui/Icon';
-import SectionHeader from '@/components/ui/SectionHeader';
+import CtaButton from '@/components/ui/CtaButton';
+import SectionTitle from '@/components/ui/SectionTitle';
+import Badge from '@/components/ui/Badge';
 
+/**
+ * Producto — calca ui_kits/website/ProductDetail.jsx:
+ * fondo de botella en duotono, notas de cata Nariz/Boca/Final, badges, precio + CTA.
+ * (Los botánicos se muestran ahora en la sección Botanicals dedicada.)
+ */
 export default function Producto() {
   const p = site.producto;
+  const price = '$' + p.price.toLocaleString('es-CL');
 
   return (
-    <section className="py-32 bg-surface" id="producto" aria-labelledby="producto-headline">
-      <div className="container mx-auto px-8 md:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-          {/* Imagen con glow hover */}
-          <div className="relative group">
-            <div className="absolute -inset-4 bg-surface-container-low rounded-xl blur-2xl group-hover:bg-surface-container-high transition-all duration-700" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={p.image}
-              alt={`${site.brand.name} — Botella`}
-              loading="lazy"
-              className="relative z-10 w-full max-w-md mx-auto transform group-hover:scale-105 transition-transform duration-700 reveal"
-            />
+    <section id="producto" className="relative overflow-hidden px-8 md:px-12 py-16 md:py-28" style={{ background: 'var(--navy-dark)' }}>
+      {/* Botella monocroma llenando la sección, desvaneciendo a la derecha */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url(${p.image})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'left center',
+          backgroundColor: 'var(--navy-light)',
+          backgroundBlendMode: 'luminosity',
+          WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 32%, rgba(0,0,0,0) 66%)',
+          maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 32%, rgba(0,0,0,0) 66%)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 z-0"
+        style={{ background: 'linear-gradient(to right, rgba(15,36,53,0) 30%, rgba(15,36,53,.55) 55%, rgba(15,36,53,.85) 100%)' }}
+      />
+
+      <div className="relative z-10 mx-auto grid grid-cols-1 md:grid-cols-2 gap-12" style={{ maxWidth: 'var(--container)' }}>
+        <div className="md:col-start-2 max-w-xl reveal">
+          <SectionTitle tone="dark" eyebrow={p.label} title="MyGin" />
+          <div className="flex flex-wrap gap-2.5 mt-3 mb-5">
+            {p.badges.map((b, i) => (
+              <Badge key={b} tone={i === 0 ? 'crimson' : i === 1 ? 'outline' : 'navy'}>
+                {b}
+              </Badge>
+            ))}
           </div>
+          <p className="max-w-lg" style={{ fontFamily: 'var(--font-body)', fontWeight: 300, fontSize: 16, lineHeight: 1.7, color: 'var(--warm-gray)' }}>
+            {p.body}
+          </p>
 
-          {/* Copy + beneficios */}
-          <div>
-            <SectionHeader
-              id="producto-headline"
-              label={p.label}
-              headline={p.headline}
-              headlineClass="font-headline text-4xl mb-6 tracking-tighter reveal"
-            />
-            <p className="text-on-surface-variant text-sm leading-relaxed mb-8 reveal reveal--delay-1">
-              {p.body}
-            </p>
-
-            {/* Perfil sensorial */}
-            <div className="flex flex-col gap-3 p-6 bg-surface-container-low rounded-xl mb-12 reveal reveal--delay-2">
-              {p.sensorProfile.map((s) => (
-                <div key={s.label} className="flex items-start gap-3">
-                  <Icon name={s.icon} fill={0} className="text-secondary text-base" />
-                  <div>
-                    <span className="text-[0.6rem] uppercase tracking-widest text-on-surface-variant block">
-                      {s.label}
-                    </span>
-                    <span className="text-sm text-on-surface">{s.value}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Beneficios */}
-            <ul className="space-y-10">
-              {p.benefits.map((b, i) => (
-                <li key={b.title} className={`flex gap-6 group reveal reveal--delay-${i + 1}`}>
-                  <div className="w-12 h-12 flex-shrink-0 bg-surface-container-highest flex items-center justify-center rounded-lg group-hover:text-primary transition-colors">
-                    <Icon name={b.icon} fill={1} />
-                  </div>
-                  <div>
-                    <h3 className="font-headline text-xl mb-2 text-on-surface">{b.title}</h3>
-                    <p className="text-on-surface-variant text-sm leading-relaxed max-w-sm">{b.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Botánicos */}
-        <div className="mt-24">
-          <div className="text-center mb-12">
-            <span className="text-secondary font-label uppercase tracking-[0.4em] text-xs mb-4 block">
-              Los 11 Botánicos
-            </span>
-            <h3 className="font-headline text-3xl tracking-tighter">
-              Lo que hay adentro
-              <span className="italic text-primary"> de la botella.</span>
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {p.botanicals.map((b, i) => (
+          <div className="my-7 flex flex-col">
+            {p.tastingNotes.map((n) => (
               <div
-                key={b.name}
-                className={`bg-surface-container-low p-4 rounded-xl flex flex-col gap-2 hover:bg-surface-container-high transition-colors reveal reveal--delay-${(i % 4) + 1}`}
+                key={n.k}
+                className="grid gap-5 py-4"
+                style={{ gridTemplateColumns: '110px 1fr', borderTop: '1px solid rgba(255,255,255,0.10)' }}
               >
-                <div className="flex items-center gap-2">
-                  <Icon name={b.icon} fill={0} className="text-secondary text-sm" />
-                  <span className="font-headline text-sm text-on-surface">{b.name}</span>
-                </div>
-                <p className="text-on-surface-variant text-xs leading-relaxed">{b.desc}</p>
+                <span style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--crimson)' }}>
+                  {n.k}
+                </span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--cream)' }}>{n.v}</span>
               </div>
             ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-6">
+            <span className="font-headline text-white" style={{ fontWeight: 700, fontSize: 32 }}>
+              {price}
+            </span>
+            <CtaButton cta={{ label: 'Agregar al carrito', type: 'primary', action: 'shop' }} />
           </div>
         </div>
       </div>

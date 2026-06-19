@@ -15,7 +15,8 @@ export default function Historia() {
               id="historia-headline"
               label={h.label}
               headline={h.headline}
-              headlineClass="font-headline text-4xl mb-10 tracking-tighter reveal"
+              align="left"
+              headlineClass="font-headline text-4xl mb-6 tracking-tighter reveal"
             />
             <p className="text-on-surface-variant text-sm leading-relaxed mb-10 reveal reveal--delay-1">
               {h.body}

@@ -14,6 +14,7 @@ export default function SectionHeader({
   sublabel,
   headlineClass = 'font-headline text-5xl tracking-tighter reveal',
   secondLineClass,
+  align = 'center',
 }: {
   label?: string;
   headline: string;
@@ -21,18 +22,16 @@ export default function SectionHeader({
   sublabel?: string;
   headlineClass?: string;
   secondLineClass?: string;
+  /** Centra la regla carmesí; usa 'left' en secciones alineadas a la izquierda. */
+  align?: 'left' | 'center';
 }) {
   return (
     <>
-      {label && (
-        <span className="text-secondary font-label uppercase tracking-[0.4em] text-xs mb-4 block">
-          {label}
-        </span>
-      )}
+      {label && <span className="mg-eyebrow mb-4 block">{label}</span>}
       <SplitHeadline id={id} text={headline} className={headlineClass} secondLineClass={secondLineClass} />
-      {sublabel && (
-        <p className="text-on-surface-variant text-sm mt-4 max-w-lg mx-auto">{sublabel}</p>
-      )}
+      {/* Regla carmesí heráldica */}
+      <span className="mg-rule" style={{ marginInline: align === 'center' ? 'auto' : undefined, marginBottom: 0 }} />
+      {sublabel && <p className="text-on-surface-variant text-sm mt-4 max-w-lg mx-auto">{sublabel}</p>}
     </>
   );
 }
