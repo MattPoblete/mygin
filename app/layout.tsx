@@ -23,13 +23,13 @@ export const metadata: Metadata = {
     url: SITE_URL,
     title: 'MyGin — El gin que se vive.',
     description: DESCRIPTION,
-    images: ['/assets/og/mygin-og.png'],
+    images: ['/og/mygin-og.webp'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'MyGin — El gin que se vive.',
     description: DESCRIPTION,
-    images: ['/assets/og/mygin-og.png'],
+    images: ['/og/mygin-og.webp'],
   },
 };
 

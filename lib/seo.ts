@@ -20,7 +20,7 @@ export const ORGANIZATION = {
   '@id': `${SITE_URL}/#organization`,
   name: site.brand.name,
   url: SITE_URL,
-  logo: absoluteUrl('/assets/og/mygin-og.png'),
+  logo: absoluteUrl('/og/mygin-og.webp'),
   description:
     'Gin contemporáneo chileno. 11 botánicos destilados a las orillas del Río Pedregoso, Villarrica, Región de la Araucanía.',
   sameAs: [site.brand.instagramUrl],
