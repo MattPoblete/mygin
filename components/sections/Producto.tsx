@@ -2,6 +2,7 @@ import site from '@/content/site';
 import CtaButton from '@/components/ui/CtaButton';
 import SectionTitle from '@/components/ui/SectionTitle';
 import Badge from '@/components/ui/Badge';
+import { formatPrice } from '@/lib/cta';
 
 /**
  * Producto — calca ui_kits/website/ProductDetail.jsx:
@@ -10,7 +11,7 @@ import Badge from '@/components/ui/Badge';
  */
 export default function Producto() {
   const p = site.producto;
-  const price = '$' + p.price.toLocaleString('es-CL');
+  const price = formatPrice(p.price);
 
   return (
     <section id="producto" className="relative overflow-hidden px-8 md:px-12 py-16 md:py-28" style={{ background: 'var(--navy-dark)' }}>

@@ -45,7 +45,10 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="flex flex-1 flex-col p-6">
-        <h3 className="font-headline text-xl tracking-tight text-on-surface">{product.name}</h3>
+        <h3 className="font-headline text-xl tracking-tight text-on-surface">
+          {product.name}
+          {soldOut && <span className="sr-only"> — Agotado</span>}
+        </h3>
         {product.shortDesc && (
           <p className="mt-2 text-sm text-on-surface-variant line-clamp-2">{product.shortDesc}</p>
         )}
@@ -53,10 +56,14 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="flex flex-col">
             {product.compareAtPrice && product.compareAtPrice > product.price && (
               <span className="text-xs text-on-surface-variant/70 line-through">
-                ${formatPrice(product.compareAtPrice)}
+                {formatPrice(product.compareAtPrice)}
               </span>
             )}
-            <span className="font-headline text-lg text-primary">${formatPrice(product.price)}</span>
+            <span
+              className={`font-headline text-lg text-primary${soldOut ? ' opacity-50' : ''}`}
+            >
+              {formatPrice(product.price)}
+            </span>
           </div>
           {low && !soldOut && (
             <span className="text-[11px] text-primary-fixed font-semibold uppercase tracking-wider">

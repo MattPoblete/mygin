@@ -4,12 +4,13 @@ import SectionTitle from '@/components/ui/SectionTitle';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
 import CtaButton from '@/components/ui/CtaButton';
+import { formatPrice } from '@/lib/cta';
 
 /**
  * Shop — calca ui_kits/website/Shop.jsx: grilla bento de productos sobre cream.
  * Enlaza a las páginas de producto reales (/producto/[slug]); el carrito vive en /tienda.
  */
-const fmt = (n: number) => '$' + n.toLocaleString('es-CL');
+const fmt = (n: number) => formatPrice(n);
 
 export default function Shop() {
   const t = site.tienda;

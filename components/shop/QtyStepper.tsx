@@ -33,11 +33,11 @@ export default function QtyStepper({
         onClick={dec}
         disabled={atMin}
         aria-label="Disminuir cantidad"
-        className="flex h-10 w-10 items-center justify-center text-secondary disabled:opacity-30 transition-opacity"
+        className="flex h-11 w-11 items-center justify-center text-secondary disabled:opacity-30 transition-opacity"
       >
         <Icon name="remove" fill={0} className="text-base" />
       </button>
-      <span className="w-10 text-center font-body text-on-surface tabular-nums" aria-live="polite">
+      <span className="w-11 text-center font-body text-on-surface tabular-nums">
         {value}
       </span>
       <button
@@ -45,7 +45,7 @@ export default function QtyStepper({
         onClick={inc}
         disabled={atMax}
         aria-label="Aumentar cantidad"
-        className="flex h-10 w-10 items-center justify-center text-secondary disabled:opacity-30 transition-opacity"
+        className="flex h-11 w-11 items-center justify-center text-secondary disabled:opacity-30 transition-opacity"
       >
         <Icon name="add" fill={0} className="text-base" />
       </button>
