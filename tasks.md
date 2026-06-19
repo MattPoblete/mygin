@@ -198,14 +198,23 @@ queda `pending` → admin aprueba → se publica; rating agregado en el producto
 - ⬜ **Operativo (usuario):** `firebase deploy --only firestore:rules` para publicar las
   reglas endurecidas de `comments` en el proyecto real.
 
-### Seguridad (endurecimiento final)  ⬜  *(owner único, va al final)*
+### 🔄 Seguridad (endurecimiento final)  *(spec: `docs/superpowers/specs/2026-06-19-endurecimiento-seguridad-design.md`)*
 **Feature:** Reglas estrictas, App Check, secretos (Req. no funcionales).
-**Objetivo:** Consolidar `firestore.rules`, activar App Check/reCAPTCHA, secretos de
-Flow en Secret Manager, pruebas de overselling concurrente, switch Flow sandbox→prod.
-- ⬜ Consolidar y endurecer todos los bloques de `firestore.rules`.
-- ⬜ Índices reales en `firestore.indexes.json` (hoy vacío).
-- ⬜ App Check en writes públicos (comments/contact) y callables.
-- ⬜ Pruebas de overselling concurrente con el emulador.
+- ✅ **Endurecer creates públicos** (`firestore.rules`) — allowlist `keys().hasOnly([...])`
+  + topes de tamaño en `comments` y `contactSubmissions` (cierra inyección de campos
+  arbitrarios); resto de bloques ya estrictos (deny-by-default, orders/coupons admin-only).
+- ✅ **Índices reales** (`firestore.indexes.json`) — compuestos faltantes
+  `teamMembers(active, order)` y `blogPosts(status, publishedAt)` (las queries de /equipo y
+  /blog fallaban en producción; el emulador las ignora).
+- ✅ **Pruebas de overselling concurrente** — `e2e/overselling.spec.ts`: N create-order en
+  paralelo contra `mygin-concurrencia` (stock 5) verifican 200===stock, resto 409, cero 500.
+  Confirma que `createOrderServer` (transacción Admin SDK) no sobre-vende. **105 e2e verde.**
+- ⬜ **App Check / reCAPTCHA — diferido (operativo):** necesita clave reCAPTCHA + enforcement
+  en consola, y NO cubre el checkout (las API routes usan Admin SDK, que bypassa App Check).
+  Solo protegería los `addDoc` públicos (reseñas/contacto), ya validados por reglas.
+- ⬜ **Operativo (usuario):** `firebase deploy --only firestore:indexes,firestore:rules`
+  para publicar índices nuevos + reglas endurecidas en `theirgin` (sin esto, /equipo y /blog
+  fallan sus queries en producción). Switch Flow sandbox→prod queda para cuando se use Flow real.
 
 ---
 
