@@ -3,6 +3,7 @@ import { SITE_URL } from '@/lib/seo';
 import { listProducts } from '@/lib/products';
 import { listPublishedPosts } from '@/lib/blog';
 
+// Next exige que `revalidate` sea un literal estáticamente analizable (no un import).
 export const revalidate = 300;
 
 /**

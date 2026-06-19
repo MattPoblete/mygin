@@ -7,8 +7,9 @@ import Shop from '@/components/sections/Shop';
 import Contacto from '@/components/sections/Contacto';
 import { getActiveProducts } from '@/lib/products';
 
-// Precio/imagen/descripción de Producto y Shop salen de Firestore; revalida igual que /tienda.
-export const revalidate = 300;
+// Precio/imagen/descripción de Producto y Shop salen de Firestore. Dinámico (SSR en vivo)
+// para que los cambios del admin se vean al instante; sin lag de caché ISR. Tráfico bajo.
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const bySlug = new Map((await getActiveProducts()).map((p) => [p.slug, p]));

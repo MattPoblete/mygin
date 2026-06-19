@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Product } from '@/lib/types';
 import { serializeProduct } from '@/lib/products';
@@ -18,26 +18,18 @@ import { SITE_URL, ORGANIZATION, absoluteUrl } from '@/lib/seo';
 /**
  * app/(shop)/producto/[slug]/page.tsx — Detalle de producto.
  *
- * Server Component. Lee el documento por slug (= docId) con el client SDK.
- * `generateStaticParams` prerenderiza los slugs activos; `generateMetadata`
- * aporta el SEO por producto. La isla cliente <AddToCartButton> añade al carrito.
+ * Server Component. Lee el documento por slug (= docId) con el client SDK en
+ * cada request (SSR en vivo): los cambios del admin se ven al instante.
+ * `generateMetadata` aporta el SEO por producto. La isla cliente
+ * <AddToCartButton> añade al carrito.
  */
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 async function getProductBySlug(slug: string): Promise<Product | null> {
   const snap = await getDoc(doc(db, 'products', slug));
   if (!snap.exists()) return null;
   const data = serializeProduct(snap);
   return data.active ? data : null;
-}
-
-export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  try {
-    const snap = await getDocs(query(collection(db, 'products'), where('active', '==', true)));
-    return snap.docs.map((d) => ({ slug: (d.data().slug as string) ?? d.id }));
-  } catch {
-    return [];
-  }
 }
 
 export async function generateMetadata({

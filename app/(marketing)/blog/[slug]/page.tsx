@@ -7,6 +7,7 @@ import type { BlogCategory, BlogPost } from '@/lib/types.blog';
 import JsonLd from '@/components/seo/JsonLd';
 import { SITE_URL, ORGANIZATION, absoluteUrl } from '@/lib/seo';
 
+// Next exige que `revalidate` sea un literal estáticamente analizable (no un import).
 export const revalidate = 300;
 
 const CATEGORY_LABEL: Record<BlogCategory, string> = {

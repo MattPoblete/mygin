@@ -4,6 +4,7 @@ import { listPublishedPosts } from '@/lib/blog';
 import type { BlogCategory } from '@/lib/types.blog';
 
 // Revalidación incremental: el contenido del blog cambia poco; 5 min es suficiente.
+// Next exige que `revalidate` sea un literal estáticamente analizable (no un import).
 export const revalidate = 300;
 
 export const metadata: Metadata = {

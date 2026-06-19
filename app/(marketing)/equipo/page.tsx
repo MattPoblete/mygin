@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase/client';
 import SectionHeader from '@/components/ui/SectionHeader';
 import type { TeamMember } from '@/lib/types.team';
 
+// Next exige que `revalidate` sea un literal estáticamente analizable (no un import).
 export const revalidate = 300;
 
 export const metadata: Metadata = {

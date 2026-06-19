@@ -7,9 +7,9 @@ import ProductCard from '@/components/shop/ProductCard';
  * app/(shop)/tienda/page.tsx — Catálogo público.
  *
  * Server Component que lee los productos activos de Firestore con el client SDK
- * en un one-shot durante el render (RSC). Se revalida cada 5 minutos.
+ * en cada request (SSR en vivo): los cambios del admin se ven al instante.
  */
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Tienda — MyGin',
