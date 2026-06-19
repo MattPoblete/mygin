@@ -2,7 +2,6 @@ import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 
 /**
  * Badge / Tag pill. tones: crimson, navy, cream, outline, success, warning.
- * Portado de components/display/Badge.jsx.
  */
 type Tone = 'crimson' | 'navy' | 'cream' | 'outline' | 'success' | 'warning';
 

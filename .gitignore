@@ -37,6 +37,9 @@ Thumbs.db
 # Claude Code
 .claude/
 
+# graphify — mapa generado (regenerable con /graphify)
+graphify-out/
+
 # Playwright E2E
 /.jdk/
 /test-results/

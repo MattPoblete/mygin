@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Button from '@/components/ui/Button';
 
 /**
- * AgeGate — verificación legal +18 (modal de entrada). Portado de ui_kits/website/AgeGate.jsx.
+ * AgeGate — verificación legal +18 (modal de entrada).
  * Persiste en sessionStorage; no se re-pregunta tras "Sí" en la misma sesión.
  *
  * Usa el <dialog> nativo con showModal(): obtiene gratis focus-trap, bloqueo de

@@ -3,7 +3,6 @@ import type { CSSProperties, ReactNode } from 'react';
 /**
  * SectionTitle — eyebrow + headline Playfair + regla carmesí.
  * align "center" centra todo (incluida la regla). tone fija color para fondos dark/light.
- * Portado de components/typography/SectionTitle.jsx.
  */
 export default function SectionTitle({
   eyebrow,

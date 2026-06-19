@@ -5,7 +5,7 @@ import { useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode
 /**
  * Button — CTA heráldica del MyGin Design System.
  * primary = crimson · secondary = navy-light · tertiary = ghost crimson.
- * Hover oscurece, press hunde (inset). Portado de components/buttons/Button.jsx.
+ * Hover oscurece, press hunde (inset).
  */
 type Variant = 'primary' | 'secondary' | 'tertiary';
 type Size = 'sm' | 'md' | 'lg';

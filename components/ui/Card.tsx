@@ -4,7 +4,7 @@ import { useState, type CSSProperties, type HTMLAttributes, type ReactNode } fro
 
 /**
  * Card — superficie elevada. tone "dark" (navy-light) o "light" (cream).
- * Lift −4px + shadow-lg en hover cuando interactive. Portado de components/display/Card.jsx.
+ * Lift −4px + shadow-lg en hover cuando interactive.
  */
 export default function Card({
   tone = 'light',
