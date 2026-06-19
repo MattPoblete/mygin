@@ -35,14 +35,38 @@ export default function ConfirmacionPage({ params }: { params: Promise<{ orderId
           </div>
         )}
 
-        {order && (
+        {order && (() => {
+          const ok = order.status === 'paid' || order.status === 'fulfilled';
+          const failed = order.status === 'failed' || order.status === 'cancelled' || order.status === 'expired';
+          return (
           <div>
-            <h1 className="font-headline text-4xl tracking-tighter text-on-surface">
-              Pedido {order.orderId}
+            <h1 className={`font-headline text-4xl tracking-tighter ${ok ? 'text-primary' : 'text-on-surface'}`}>
+              {ok ? '¡Compra confirmada!' : failed ? 'El pago no se completó' : `Pedido ${order.orderId}`}
             </h1>
             <p className="mt-2 text-sm uppercase tracking-widest text-secondary">
-              Estado: {STATUS_LABEL[order.status] ?? order.status}
+              Pedido {order.orderId} · {STATUS_LABEL[order.status] ?? order.status}
             </p>
+
+            {ok && (
+              <div className="mt-6 rounded-xl border border-outline-variant/30 bg-surface-container-low p-5 text-sm text-on-surface-variant">
+                <p className="font-headline text-base text-on-surface">¿Qué sigue?</p>
+                <ul className="mt-3 space-y-2">
+                  <li>Te enviamos un correo con el detalle y el comprobante de tu compra.</li>
+                  <li>Despachamos en 2 a 5 días hábiles dentro de Chile.</li>
+                  <li>
+                    ¿Dudas con tu pedido? Escríbenos a{' '}
+                    <a href="mailto:hola@mygin.cl" className="text-primary underline">hola@mygin.cl</a>.
+                  </li>
+                </ul>
+              </div>
+            )}
+
+            {failed && (
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link href="/checkout" className="btn-primary inline-block">Reintentar pago</Link>
+                <Link href="/carrito" className="btn-outline inline-block">Volver al carrito</Link>
+              </div>
+            )}
 
             <ul className="mt-8 divide-y divide-outline-variant/20 border-y border-outline-variant/20">
               {order.items.map((i) => (
@@ -74,9 +98,12 @@ export default function ConfirmacionPage({ params }: { params: Promise<{ orderId
               </div>
             </div>
 
-            <Link href="/tienda" className="btn-primary mt-8 inline-block">Seguir comprando</Link>
+            {!failed && (
+              <Link href="/tienda" className="btn-primary mt-8 inline-block">Seguir comprando</Link>
+            )}
           </div>
-        )}
+          );
+        })()}
       </div>
     </main>
   );

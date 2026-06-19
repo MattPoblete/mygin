@@ -15,6 +15,11 @@ import { formatPrice } from '@/lib/cta';
  * confirmación. Si sigue procesando, ofrece reintentar. El webhook es la fuente
  * de verdad; esta página solo refleja el estado.
  */
+// Estados terminales: ya no tiene sentido seguir consultando.
+const TERMINAL = new Set(['paid', 'fulfilled', 'failed', 'cancelled', 'expired']);
+// Backoff entre auto-consultas (ms). Tras agotarlas, mostramos el botón manual.
+const POLL_DELAYS = [1500, 2500, 4000, 6000];
+
 function RetornoInner() {
   const params = useSearchParams();
   const orderId = params.get('orderId') ?? '';
@@ -23,25 +28,60 @@ function RetornoInner() {
   const [order, setOrder] = useState<OrderStatusResult | null | undefined>(undefined);
   const [error, setError] = useState('');
   const [cleared, setCleared] = useState(false);
+  const [autoPolling, setAutoPolling] = useState(true);
 
   const load = () => {
     if (!orderId) {
       setError('Falta el identificador del pedido.');
       setOrder(null);
-      return;
+      return Promise.resolve<OrderStatusResult | null>(null);
     }
-    getOrderStatus(orderId)
+    return getOrderStatus(orderId)
       .then((o) => {
         setOrder(o);
         if (o.status === 'paid' && !cleared) {
           clear();
           setCleared(true);
         }
+        return o;
       })
-      .catch(() => setError('No se pudo consultar el estado del pedido.'));
+      .catch(() => {
+        setError('No se pudo consultar el estado del pedido.');
+        return null;
+      });
   };
 
-  useEffect(load, [orderId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto-poll con backoff mientras la orden no esté en un estado terminal.
+  useEffect(() => {
+    if (!orderId) {
+      setError('Falta el identificador del pedido.');
+      setOrder(null);
+      return;
+    }
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let attempt = 0;
+
+    const tick = async () => {
+      const o = await load();
+      if (cancelled) return;
+      if (o && TERMINAL.has(o.status)) {
+        setAutoPolling(false);
+        return;
+      }
+      if (attempt < POLL_DELAYS.length) {
+        timers.push(setTimeout(tick, POLL_DELAYS[attempt++]));
+      } else {
+        setAutoPolling(false);
+      }
+    };
+    tick();
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [orderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main className="min-h-screen bg-background pt-32 pb-32">
@@ -73,13 +113,17 @@ function RetornoInner() {
 
         {order && (order.status === 'awaiting_payment' || order.status === 'pending') && (
           <div className="text-center">
-            <h1 className="font-headline text-3xl tracking-tighter text-on-surface">Procesando tu pago…</h1>
+            <h1 className="font-headline text-3xl tracking-tighter text-on-surface">Confirmando tu pago…</h1>
             <p className="mt-4 text-on-surface-variant">
-              Estamos confirmando el pago con Flow. Esto puede tardar unos segundos.
+              {autoPolling
+                ? 'Estamos verificando el pago con la pasarela. Esto puede tardar unos segundos; no cierres esta página.'
+                : 'Aún no recibimos la confirmación. Si ya pagaste, actualiza el estado en unos instantes.'}
             </p>
-            <button type="button" onClick={load} className="btn-primary mt-6">
-              Actualizar estado
-            </button>
+            {!autoPolling && (
+              <button type="button" onClick={load} className="btn-primary mt-6">
+                Actualizar estado
+              </button>
+            )}
           </div>
         )}
 
@@ -87,10 +131,17 @@ function RetornoInner() {
           <div className="text-center">
             <h1 className="font-headline text-3xl tracking-tighter text-on-surface">El pago no se completó</h1>
             <p className="mt-4 text-on-surface-variant">
-              Tu pedido quedó {order.status === 'expired' ? 'expirado' : order.status === 'cancelled' ? 'cancelado' : 'sin pagar'}.
-              Puedes intentar de nuevo.
+              {order.status === 'expired'
+                ? 'El tiempo para pagar este pedido expiró.'
+                : order.status === 'cancelled'
+                  ? 'Cancelaste el pago de este pedido.'
+                  : 'No pudimos procesar el pago de este pedido.'}{' '}
+              No se realizó ningún cargo. Puedes intentar de nuevo.
             </p>
-            <Link href="/carrito" className="btn-primary mt-6 inline-block">Volver al carrito</Link>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link href="/checkout" className="btn-primary inline-block">Reintentar pago</Link>
+              <Link href="/carrito" className="btn-outline inline-block">Volver al carrito</Link>
+            </div>
           </div>
         )}
       </div>

@@ -14,6 +14,30 @@ export function cartToItems(items: CartItem[]): { productId: string; qty: number
   return items.map((i) => ({ productId: i.productId, qty: i.qty }));
 }
 
+/**
+ * Valida un RUT chileno (módulo 11). Acepta con o sin puntos/guion.
+ * Devuelve true para RUT bien formado y con dígito verificador correcto.
+ */
+export function isValidRut(rut: string): boolean {
+  const clean = rut.replace(/[.\-\s]/g, '').toUpperCase();
+  if (!/^\d{7,8}[0-9K]$/.test(clean)) return false;
+  const body = clean.slice(0, -1);
+  const dv = clean.slice(-1);
+  let sum = 0;
+  let mul = 2;
+  for (let i = body.length - 1; i >= 0; i--) {
+    sum += Number(body[i]) * mul;
+    mul = mul === 7 ? 2 : mul + 1;
+  }
+  const res = 11 - (sum % 11);
+  const expected = res === 11 ? '0' : res === 10 ? 'K' : String(res);
+  return dv === expected;
+}
+// Autochequeo (RUT de ejemplo oficial 12.345.678-5).
+if (process.env.NODE_ENV !== 'production') {
+  console.assert(isValidRut('12.345.678-5') && !isValidRut('12.345.678-9'), 'isValidRut self-check failed');
+}
+
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: 'POST',
