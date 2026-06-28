@@ -11,23 +11,27 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { db } from '../shared/admin.js';
 import { REGION } from '../shared/config.js';
+import { getStatus } from './flowClient.js';
+import { FLOW_SECRETS, flowCreds } from './secrets.js';
+import { settleOrder } from './settle.js';
+import { isMockMode } from '../shared/payments.js';
 
 interface GetOrderStatusData {
   orderId: string;
 }
 
 export const getOrderStatus = onCall(
-  { region: REGION },
+  { region: REGION, secrets: FLOW_SECRETS },
   async (request) => {
     const { orderId } = (request.data ?? {}) as GetOrderStatusData;
     if (typeof orderId !== 'string' || !orderId) {
       throw new HttpsError('invalid-argument', 'orderId requerido.');
     }
-    const snap = await db.collection('orders').doc(orderId).get();
+    let snap = await db.collection('orders').doc(orderId).get();
     if (!snap.exists) {
       throw new HttpsError('not-found', 'Orden no encontrada.');
     }
-    const o = snap.data() as {
+    let o = snap.data() as {
       status: string;
       subtotal: number;
       discount: number;
@@ -36,7 +40,31 @@ export const getOrderStatus = onCall(
       total: number;
       items: { productId: string; name: string; qty: number; unitPrice: number }[];
       createdAt?: { toMillis(): number };
+      flow?: { token?: string };
     };
+
+    // Reconciliación con Flow: el webhook (urlConfirmation) es el camino primario,
+    // pero no siempre llega (no alcanza localhost; en prod puede atrasarse/fallar).
+    // Si la orden sigue pendiente y hay token real de Flow, consultamos getStatus
+    // —fuente de verdad— y liquidamos vía settleOrder (idempotente). El mock se
+    // salta: liquida vía mockConfirmPayment.
+    const token = o.flow?.token;
+    if (o.status === 'awaiting_payment' && token && !isMockMode() && !token.startsWith('MOCK-')) {
+      try {
+        const flow = await getStatus(token, flowCreds());
+        if (flow.status === 2) await settleOrder(orderId, true);
+        else if (flow.status === 3 || flow.status === 4) await settleOrder(orderId, false);
+        // status 1 (pendiente): nada que hacer.
+        if (flow.status !== 1) {
+          snap = await db.collection('orders').doc(orderId).get();
+          o = snap.data() as typeof o;
+          console.log(`getOrderStatus[${orderId}]: reconciliado vía Flow (status ${flow.status}) → ${o.status}`);
+        }
+      } catch (err) {
+        // No romper la callable: caer al estado guardado en Firestore.
+        console.error(`getOrderStatus: reconciliación con Flow falló para ${orderId}:`, (err as Error).message);
+      }
+    }
 
     return {
       orderId: snap.id,

@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartProvider';
 import { formatPrice } from '@/lib/cta';
 import { createOrder, validateCoupon, isValidRut, type ValidateCouponResult } from '@/lib/checkout';
-import { SHIPPING_FLAT_CLP, PAY_TIMEOUT_MS } from '@/lib/constants';
+import { SHIPPING_FLAT_CLP } from '@/lib/constants';
 import type { CustomerInfo } from '@/lib/types.order';
 
 type FieldErrors = Partial<Record<string, string>>;
@@ -51,15 +51,12 @@ const REGIONES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotal, count, clear } = useCart();
+  const { items, subtotal, count } = useCart();
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
   const [busy, setBusy] = useState(false);
-  const [waiting, setWaiting] = useState(false);
   const [error, setError] = useState('');
-  // Mensaje cuando el popup se cierra sin confirmar / se bloquea.
-  const [payNotice, setPayNotice] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   // Cupón
@@ -67,13 +64,9 @@ export default function CheckoutPage() {
   const [couponState, setCouponState] = useState<ValidateCouponResult | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
 
-  // Tras pagar vaciamos el carrito y navegamos a la confirmación; este flag evita que
-  // el redirect "carrito vacío → /tienda" gane la carrera y desvíe al cliente.
-  const paidRef = useRef(false);
-
-  // Redirige a la tienda si el carrito está vacío (tras hidratar), salvo que acabemos de pagar.
+  // Redirige a la tienda si el carrito está vacío (tras hidratar).
   useEffect(() => {
-    if (hydrated && items.length === 0 && !paidRef.current) {
+    if (hydrated && items.length === 0) {
       router.replace('/tienda');
     }
   }, [hydrated, items.length, router]);
@@ -110,7 +103,6 @@ export default function CheckoutPage() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    setPayNotice('');
     const form = e.currentTarget;
     const fd = new FormData(form);
     const str = (k: string) => String(fd.get(k) ?? '').trim();
@@ -147,77 +139,20 @@ export default function CheckoutPage() {
     setFieldErrors({});
 
     setBusy(true);
-    let orderId: string;
-    let payUrl: string;
     try {
       const res = await createOrder({
         items,
         customer,
         couponCode: couponState?.valid ? couponCode.trim() : undefined,
       });
-      orderId = res.orderId;
-      // La URL puede ser relativa (mock) o absoluta (Flow).
-      payUrl = new URL(res.redirectUrl, window.location.origin).href;
+      // Redirige la misma pestaña a la pasarela. La URL puede ser relativa (mock)
+      // o absoluta (Flow). Al terminar, Flow vuelve a /checkout/retorno (urlReturn)
+      // y el mock también; esa página confirma el estado y limpia el carrito.
+      window.location.href = new URL(res.redirectUrl, window.location.origin).href;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago.');
       setBusy(false);
-      return;
     }
-
-    const win = window.open(payUrl, 'mygin-pago', 'width=480,height=720');
-    if (!win) {
-      // Popup bloqueado: no redirigimos en la misma pestaña (perderíamos el form).
-      setBusy(false);
-      setPayNotice('Tu navegador bloqueó la ventana de pago. Habilita las ventanas emergentes para este sitio y vuelve a intentar.');
-      return;
-    }
-    setWaiting(true);
-
-    let settled = false;
-    const cleanup = () => {
-      window.removeEventListener('message', onMessage);
-      clearInterval(poll);
-      clearTimeout(timer);
-    };
-    // Solo navegamos a confirmación con un status explícito del popup.
-    const onMessage = (ev: MessageEvent) => {
-      if (ev.origin !== window.location.origin) return;
-      const d = ev.data as { type?: string; orderId?: string; status?: string };
-      if (d?.type !== 'mygin-pago' || d.orderId !== orderId) return;
-      settled = true;
-      cleanup();
-      if (d.status === 'paid') {
-        paidRef.current = true;
-        clear();
-        router.push(`/checkout/confirmacion/${orderId}`);
-      } else {
-        // Rechazado/cancelado: vuelve al form para reintentar.
-        setWaiting(false);
-        setBusy(false);
-        setPayNotice('El pago no se completó. Puedes intentar de nuevo.');
-      }
-    };
-    window.addEventListener('message', onMessage);
-    // Si la ventana se cierra sin avisar, volvemos al form (NO navegamos).
-    const poll = setInterval(() => {
-      if (settled) return;
-      if (win.closed) {
-        settled = true;
-        cleanup();
-        setWaiting(false);
-        setBusy(false);
-        setPayNotice('No recibimos confirmación del pago. ¿Reintentar?');
-      }
-    }, 800);
-    // Salvaguarda: nunca quedarse colgado en "Esperando el pago…".
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      setWaiting(false);
-      setBusy(false);
-      setPayNotice('No recibimos confirmación del pago. ¿Reintentar?');
-    }, PAY_TIMEOUT_MS);
   };
 
   if (!hydrated) {
@@ -321,29 +256,16 @@ export default function CheckoutPage() {
             </fieldset>
 
             {error && <p className="text-error text-sm" role="alert">{error}</p>}
-            {payNotice && (
-              <p className="rounded-lg border border-outline-variant/40 bg-surface-container p-3 text-sm text-on-surface" role="alert">
-                {payNotice}
-              </p>
-            )}
 
             <button
               type="submit"
-              disabled={busy || waiting}
+              disabled={busy}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {waiting
-                ? 'Esperando el pago…'
-                : busy
-                  ? 'Abriendo el pago…'
-                  : payNotice
-                    ? 'Reintentar pago'
-                    : `Pagar ${formatPrice(estimatedTotal)}`}
+              {busy ? 'Redirigiendo al pago…' : `Pagar ${formatPrice(estimatedTotal)}`}
             </button>
             <p className="text-xs text-on-surface-variant/70 text-center">
-              {waiting
-                ? 'Completa el pago en la ventana que se abrió. Esta página se actualizará al terminar.'
-                : 'Se abrirá una ventana para completar el pago de forma segura. IVA incluido.'}
+              Te llevaremos a la pasarela para completar el pago de forma segura. IVA incluido.
             </p>
           </form>
 

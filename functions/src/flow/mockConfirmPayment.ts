@@ -6,8 +6,8 @@
  * usuario (aceptar/rechazar) y aquí se liquida la orden (commit o liberación de
  * stock) reutilizando la misma lógica atómica que el webhook real.
  *
- * Deshabilitada si PAYMENTS_MODE=live (para que en producción solo el webhook
- * de Flow pueda confirmar pagos).
+ * Deshabilitada si PAYMENTS_MODE es sandbox/production (para que solo el webhook
+ * de Flow pueda confirmar pagos cuando Flow está activo).
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { isMockMode } from '../shared/payments.js';

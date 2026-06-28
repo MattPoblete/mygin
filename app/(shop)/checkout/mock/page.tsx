@@ -8,10 +8,9 @@ import { formatPrice } from '@/lib/cta';
 /**
  * app/(shop)/checkout/mock/page.tsx — Pasarela de pago SIMULADA (mock de Flow).
  *
- * Se abre en una ventana nueva desde el checkout. Muestra el total y permite
+ * Se abre en la misma pestaña desde el checkout. Muestra el total y permite
  * Aceptar o Rechazar el pago. Al decidir, llama a `mockConfirmPayment` (liquida
- * la orden server-side) y comunica el resultado a la ventana que la abrió vía
- * postMessage; si no hay opener, redirige a la confirmación.
+ * la orden server-side) y redirige a /checkout/retorno, igual que Flow real.
  */
 function MockInner() {
   const params = useSearchParams();
@@ -38,19 +37,10 @@ function MockInner() {
     setBusy(decision);
     try {
       const { status } = await mockConfirmPayment(orderId, decision);
-      const result = status === 'paid' ? 'paid' : 'cancelled';
-      setDone(result);
-      // Avisar a la ventana que abrió este popup y cerrarse.
-      if (window.opener) {
-        window.opener.postMessage(
-          { type: 'mygin-pago', orderId, status: result },
-          window.location.origin,
-        );
-        setTimeout(() => window.close(), 600);
-      } else {
-        // Sin opener (abierta directo): ir a la confirmación.
-        window.location.href = `/checkout/confirmacion/${orderId}`;
-      }
+      setDone(status === 'paid' ? 'paid' : 'cancelled');
+      // Misma pestaña: ir a /checkout/retorno, que confirma el estado y limpia
+      // el carrito (mismo camino que Flow real).
+      window.location.href = `/checkout/retorno?orderId=${orderId}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo procesar el pago.');
       setBusy(null);
@@ -78,9 +68,7 @@ function MockInner() {
             <p className={`font-headline text-2xl ${done === 'paid' ? 'text-primary' : 'text-on-surface'}`}>
               {done === 'paid' ? '¡Pago aprobado!' : 'Pago rechazado'}
             </p>
-            <p className="mt-2 text-sm text-on-surface-variant">
-              {window.opener ? 'Volviendo a la tienda…' : 'Redirigiendo…'}
-            </p>
+            <p className="mt-2 text-sm text-on-surface-variant">Redirigiendo…</p>
           </div>
         )}
 
