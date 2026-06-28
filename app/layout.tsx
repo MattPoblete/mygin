@@ -6,12 +6,15 @@ import { CartProvider } from '@/lib/cart/CartProvider';
 import JsonLd from '@/components/seo/JsonLd';
 import { SITE_URL, ORGANIZATION } from '@/lib/seo';
 
+// ponytail: <title> lleva las keywords que la gente busca ("gin artesanal chileno");
+// el tagline de marca "El gin que se vive" vive en el H1/hero, no en el <title>.
+const TITLE = 'MyGin | Gin Artesanal Chileno — Huesillo y 11 Botánicos de la Araucanía';
 const DESCRIPTION =
-  'MyGin — Gin contemporáneo chileno. 11 botánicos destilados a las orillas del Río Pedregoso, Villarrica, Araucanía.';
+  'MyGin: gin contemporáneo chileno destilado en Villarrica con 11 botánicos —huesillo, tomillo y enebro de la Araucanía—. Compra online con despacho a todo Chile.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'MyGin — El gin que se vive.',
+  title: TITLE,
   description: DESCRIPTION,
   icons: { icon: '/assets/favicon.png' },
   alternates: { canonical: '/' },
@@ -20,13 +23,13 @@ export const metadata: Metadata = {
     siteName: 'MyGin',
     locale: 'es_CL',
     url: SITE_URL,
-    title: 'MyGin — El gin que se vive.',
+    title: TITLE,
     description: DESCRIPTION,
     images: ['/og/mygin-og.webp'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MyGin — El gin que se vive.',
+    title: TITLE,
     description: DESCRIPTION,
     images: ['/og/mygin-og.webp'],
   },

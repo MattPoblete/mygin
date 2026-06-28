@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Product } from '@/lib/types';
+import type { Comment } from '@/lib/types.comment';
 import { serializeProduct } from '@/lib/products';
 import { formatPrice } from '@/lib/cta';
 import { availableStock, isLowStock } from '@/lib/cart/stock';
@@ -53,8 +54,18 @@ export async function generateMetadata({
   };
 }
 
-/** Schema.org Product con offer (precio + disponibilidad en vivo) para rich results y LLMs. */
-function productJsonLd(product: Product, avail: number) {
+/**
+ * Schema.org Product con offer (precio + disponibilidad en vivo) para rich results y LLMs.
+ * Si hay reseñas aprobadas, agrega aggregateRating + review (estrellas en Google).
+ * Solo se emite con reseñas REALES y visibles en la página — nunca testimonios falsos.
+ */
+function productJsonLd(
+  product: Product,
+  avail: number,
+  reviews: Comment[],
+  average: number,
+  ratingCount: number,
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -80,6 +91,23 @@ function productJsonLd(product: Product, avail: number) {
         : 'https://schema.org/OutOfStock',
       url: `${SITE_URL}/producto/${product.slug}`,
     },
+    ...(ratingCount > 0 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: Number(average.toFixed(1)),
+        reviewCount: ratingCount,
+        bestRating: 5,
+      },
+      review: reviews.slice(0, 10).map((r) => ({
+        '@type': 'Review',
+        author: { '@type': 'Person', name: r.authorName },
+        reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+        reviewBody: r.body,
+        ...(typeof r.createdAt === 'number' && {
+          datePublished: new Date(r.createdAt).toISOString().slice(0, 10),
+        }),
+      })),
+    }),
   };
 }
 
@@ -104,7 +132,7 @@ export default async function ProductoPage({
 
   return (
     <main className="bg-background min-h-screen pt-32 pb-32">
-      <JsonLd data={productJsonLd(product, avail)} />
+      <JsonLd data={productJsonLd(product, avail, reviews, average, ratingCount)} />
       <div className="container mx-auto px-8 md:px-12">
         <nav className="mb-8 text-xs uppercase tracking-widest text-on-surface-variant">
           <Link href="/tienda" className="hover:text-primary transition-colors">

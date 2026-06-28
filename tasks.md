@@ -274,6 +274,24 @@ queda `pending` → admin aprueba → se publica; rating agregado en el producto
 
 ---
 
+### 🔄 SEO competitivo (vs ginelemental.cl)  *(análisis 2026-06-19)*
+**Objetivo:** rankear para "gin chileno / gin artesanal chileno". Competidor gana por
+keywords-en-título + más SKUs + blog + distribución (Falabella/Líder/MercadoLibre); no usan JSON-LD.
+- ✅ **`<title>`/meta con keywords** (`app/layout.tsx`) — antes "El gin que se vive" (0 keywords);
+  ahora "Gin Artesanal Chileno — Huesillo y 11 Botánicos de la Araucanía". Tagline pasa al H1/hero.
+- ✅ **AggregateRating + Review JSON-LD** (`producto/[slug]`) — solo reseñas reales y visibles → estrellas en SERP.
+- ✅ **Página `/recetas` + Recipe JSON-LD** — recetas de `site.ts` (antes contenido muerto sin URL)
+  ahora indexables; enlazada desde footer; en sitemap. Rich results de receta + citabilidad LLM.
+- ✅ **Blog (3 artículos publicados)** en `blogPosts` (Firestore `theirgin`): lanzamiento-villarrica,
+  torneo-sin-fronteras-pepino-sour, primer-tasting. Contenido del usuario (`docs/blogs/`) normalizado
+  con `scripts/clean-blog.mjs` (quita frontmatter + H1 duplicado, remapea links muertos a /contacto y
+  /#distribuidores), subidos vía MCP de Firebase. Categorías noticia/articulo, tags = keywords del frontmatter.
+- ⬜ **Google Business Profile** "Destilería MyGin, Villarrica" — gana mapa local (competidor es Santiago).
+- ⬜ **Performance:** home es `force-dynamic` + Firestore por request (TTFB lento) → evaluar ISR.
+- ⬜ **Distribución/backlinks** (comercial): aparecer en MercadoLibre/retailers = backlinks + marca en SERP.
+
+---
+
 ## Notas técnicas
 - **Tipos por feature:** `lib/types.ts` solo tiene `Product`; cada feature crea
   `lib/types.<feature>.ts` para evitar conflictos de merge entre worktrees.

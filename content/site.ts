@@ -408,6 +408,7 @@ const site = {
           { label: 'Dónde comprar', href: '#distribuidores' },
           { label: 'El Gin', href: '#producto' },
           { label: 'Botánicos', href: '#botanicos' },
+          { label: 'Recetas', href: '/recetas' },
           { label: 'Tienda', href: '/tienda' },
         ],
       },
