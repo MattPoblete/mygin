@@ -98,15 +98,19 @@ las de servidor se inyectan como env de la backend del framework / Secret Manage
 Viven en **Secret Manager**, nunca en el código ni en `.env`:
 
 ```bash
-pnpm exec firebase functions:secrets:set FLOW_API_KEY
-pnpm exec firebase functions:secrets:set FLOW_SECRET_KEY
-# FLOW_API_BASE: sandbox https://sandbox.flow.cl/api · prod https://www.flow.cl/api
+# Dos pares (sandbox + producción coexisten); los cuatro deben existir para deployar.
+pnpm exec firebase functions:secrets:set FLOW_SANDBOX_API_KEY
+pnpm exec firebase functions:secrets:set FLOW_SANDBOX_SECRET_KEY
+pnpm exec firebase functions:secrets:set FLOW_PRODUCTION_API_KEY
+pnpm exec firebase functions:secrets:set FLOW_PRODUCTION_SECRET_KEY
 ```
 
-**`PAYMENTS_MODE`** controla la pasarela (`functions/src/shared/payments.ts`):
+**`PAYMENTS_MODE`** controla la pasarela (`functions/src/shared/payments.ts`); una sola
+variable decide base URL + par de llaves:
 - sin setear / `mock` → checkout abre una ventana simulada (`/checkout/mock`) que
   acepta/rechaza el pago vía la callable `mockConfirmPayment`. No llama a Flow.
-- `live` → usa Flow real. Setéalo en las Functions y configura los secretos de arriba.
+- `sandbox` → Flow real contra `sandbox.flow.cl` con el par `FLOW_SANDBOX_*`.
+- `production` → Flow real contra `www.flow.cl` con el par `FLOW_PRODUCTION_*`.
 
 ### 3. Verificación previa (gate)
 

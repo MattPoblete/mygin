@@ -18,16 +18,22 @@ El checkout de MyGin corre sobre **Cloud Functions** (`functions/`, callables co
 
 ## Blocker: los secretos de Flow
 
-`createOrder` y `flowWebhook` declaran:
+`createOrder` y `flowWebhook` declaran cuatro secretos (`functions/src/flow/secrets.ts`):
 
 ```ts
-defineSecret('FLOW_API_KEY');
-defineSecret('FLOW_SECRET_KEY');
+defineSecret('FLOW_SANDBOX_API_KEY');
+defineSecret('FLOW_SANDBOX_SECRET_KEY');
+defineSecret('FLOW_PRODUCTION_API_KEY');
+defineSecret('FLOW_PRODUCTION_SECRET_KEY');
 ```
 
-`firebase deploy` **exige que esos secretos existan**, aunque en modo mock no se lean en
-runtime (`isMockMode()` corta antes de llamar a `.value()`). Si no existen, el deploy falla.
-Además la **Secret Manager API** puede estar deshabilitada en el proyecto.
+`firebase deploy` **exige que los cuatro existan**, aunque en modo mock no se lean en
+runtime (`isMockMode()` corta antes de llamar a `flowCreds()`). Si falta alguno, el deploy
+falla. Además la **Secret Manager API** puede estar deshabilitada en el proyecto.
+
+> **`PAYMENTS_MODE`** (env de las Functions) decide TODO: `mock` (default) no llama a Flow;
+> `sandbox` usa el par sandbox contra `sandbox.flow.cl`; `production` usa el par prod contra
+> `www.flow.cl`. La base URL y las llaves siempre quedan acopladas al mismo modo.
 
 ---
 
@@ -39,9 +45,11 @@ Mantiene el pago simulado (`/checkout/mock`); no se llama a Flow. Solo desbloque
 # 1. Habilitar Secret Manager API (una vez)
 gcloud services enable secretmanager.googleapis.com --project theirgin
 
-# 2. Crear los secretos con valores dummy (interactivo: pega cualquier string)
-npx -y firebase-tools@latest functions:secrets:set FLOW_API_KEY
-npx -y firebase-tools@latest functions:secrets:set FLOW_SECRET_KEY
+# 2. Crear los 4 secretos con valores dummy (interactivo: pega cualquier string)
+npx -y firebase-tools@latest functions:secrets:set FLOW_SANDBOX_API_KEY
+npx -y firebase-tools@latest functions:secrets:set FLOW_SANDBOX_SECRET_KEY
+npx -y firebase-tools@latest functions:secrets:set FLOW_PRODUCTION_API_KEY
+npx -y firebase-tools@latest functions:secrets:set FLOW_PRODUCTION_SECRET_KEY
 
 # 3. Desplegar (PAYMENTS_MODE sin setear ⇒ mock por defecto)
 npx -y firebase-tools@latest deploy --only functions
@@ -52,30 +60,33 @@ checkout anónimo.
 
 ---
 
-## Opción B — Pago real de Flow (`live`)
+## Opción B — Pago real de Flow (`sandbox` / `production`)
 
-Requiere las llaves reales de Flow (sandbox o producción) y validar el webhook.
+Requiere las llaves reales de Flow y validar el webhook.
 
 ```bash
 # 1. Habilitar Secret Manager API (si no está)
 gcloud services enable secretmanager.googleapis.com --project theirgin
 
-# 2. Setear las llaves REALES (interactivo)
-npx -y firebase-tools@latest functions:secrets:set FLOW_API_KEY
-npx -y firebase-tools@latest functions:secrets:set FLOW_SECRET_KEY
+# 2. Setear los pares REALES (interactivo). El par no usado puede ir dummy,
+#    pero los cuatro deben existir para que el deploy no falle.
+npx -y firebase-tools@latest functions:secrets:set FLOW_SANDBOX_API_KEY
+npx -y firebase-tools@latest functions:secrets:set FLOW_SANDBOX_SECRET_KEY
+npx -y firebase-tools@latest functions:secrets:set FLOW_PRODUCTION_API_KEY
+npx -y firebase-tools@latest functions:secrets:set FLOW_PRODUCTION_SECRET_KEY
 
-# 3. Activar modo live en las functions
-#    (env de las functions; sin esto sigue en mock)
-#    Vía Secret/param o functions config — definir PAYMENTS_MODE=live para las funciones.
+# 3. Activar el modo en las functions (sin esto sigue en mock):
+#    PAYMENTS_MODE=sandbox  (pruebas)  |  PAYMENTS_MODE=production  (real)
 
 # 4. Desplegar
 npx -y firebase-tools@latest deploy --only functions
 ```
 
-Notas modo live:
-- `FLOW_API_BASE` controla sandbox vs prod (`functions/src/flow/flowClient.ts`):
-  - sandbox (default): `https://sandbox.flow.cl/api`
-  - producción: `https://www.flow.cl/api`  → setear env `FLOW_API_BASE`.
+Notas modo real:
+- `PAYMENTS_MODE` controla sandbox vs prod (base URL en `functions/src/shared/config.ts`,
+  par de llaves en `functions/src/flow/secrets.ts`):
+  - `sandbox`: `https://sandbox.flow.cl/api` + par `FLOW_SANDBOX_*`.
+  - `production`: `https://www.flow.cl/api` + par `FLOW_PRODUCTION_*`.
 - `flowWebhook` es la `urlConfirmation` pública que Flow llama tras el pago:
   `https://southamerica-west1-theirgin.cloudfunctions.net/flowWebhook`.
   Nunca confía en el POST: consulta `getStatus(token)` como fuente de verdad.

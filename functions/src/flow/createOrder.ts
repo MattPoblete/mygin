@@ -13,22 +13,19 @@
  * El cliente NUNCA dicta precios ni totales: todo es server-side.
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import { defineSecret } from 'firebase-functions/params';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { db } from '../shared/admin.js';
 import { SHIPPING_FLAT_CLP, RESERVATION_MINUTES } from '../shared/constants.js';
 import { REGION, functionsBase, siteBase } from '../shared/config.js';
 import { isMockMode } from '../shared/payments.js';
 import { createPayment } from './flowClient.js';
+import { FLOW_SECRETS, flowCreds } from './secrets.js';
 import {
   findCouponByCode,
   evaluateCouponSnap,
   isCouponError,
   type EvaluatedCoupon,
 } from '../coupons/logic.js';
-
-export const FLOW_API_KEY = defineSecret('FLOW_API_KEY');
-export const FLOW_SECRET_KEY = defineSecret('FLOW_SECRET_KEY');
 
 interface InItem {
   productId: string;
@@ -89,7 +86,7 @@ function sanitizeCustomer(c: InCustomer | undefined): InCustomer {
 }
 
 export const createOrder = onCall(
-  { region: REGION, secrets: [FLOW_API_KEY, FLOW_SECRET_KEY] },
+  { region: REGION, secrets: FLOW_SECRETS },
   async (request) => {
     const data = request.data as CreateOrderData;
 
@@ -222,7 +219,7 @@ export const createOrder = onCall(
     }
 
     // --- Crear el pago en Flow (fuera de la transacción) ---
-    const creds = { apiKey: FLOW_API_KEY.value(), secretKey: FLOW_SECRET_KEY.value() };
+    const creds = flowCreds();
     // urlConfirmation (webhook) y urlReturn. Las bases de Functions y del sitio
     // son configurables por env; defaults derivados del projectId (ver config.ts).
     const fnBase = functionsBase();
@@ -249,6 +246,8 @@ export const createOrder = onCall(
 
       return { orderId: orderRef.id, redirectUrl: payment.redirectUrl };
     } catch (err) {
+      // Loguear el motivo REAL de Flow (code+message) para depurar en consola.
+      console.error(`createOrder: Flow falló para ${orderRef.id}:`, (err as Error).message);
       // Flow falló: liberar reservas y marcar la orden fallida para no colgar stock.
       await db.runTransaction(async (tx) => {
         const ids = [...wanted.keys()];

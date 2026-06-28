@@ -5,6 +5,7 @@
  * lecturas de process.env dispersas en cada función. Las constantes de dominio
  * (precios, minutos de reserva) van en shared/constants.ts.
  */
+import { paymentsMode } from './payments.js';
 
 /**
  * Región de las Cloud Functions. Debe coincidir con firebase.json y con
@@ -34,7 +35,9 @@ export function siteBase(): string {
   return process.env.SITE_BASE_URL || `https://${projectId()}.web.app`;
 }
 
-/** Base de la API de Flow. Sandbox por defecto; prod vía env FLOW_API_BASE. */
+/** Base de la API de Flow, derivada del PAYMENTS_MODE (no de una env aparte). */
 export function flowApiBase(): string {
-  return process.env.FLOW_API_BASE || 'https://sandbox.flow.cl/api';
+  return paymentsMode() === 'production'
+    ? 'https://www.flow.cl/api'
+    : 'https://sandbox.flow.cl/api';
 }

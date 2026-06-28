@@ -12,7 +12,9 @@
  *   - validateCoupon              (callable)  coupons/validate.ts
  *
  * Secretos (Secret Manager, vía firebase functions:secrets:set):
- *   FLOW_API_KEY, FLOW_SECRET_KEY — NUNCA hardcodear.
+ *   FLOW_SANDBOX_API_KEY, FLOW_SANDBOX_SECRET_KEY,
+ *   FLOW_PRODUCTION_API_KEY, FLOW_PRODUCTION_SECRET_KEY — NUNCA hardcodear.
+ *   El par usado lo decide PAYMENTS_MODE (mock|sandbox|production).
  */
 export { createOrder } from './flow/createOrder.js';
 export { flowWebhook } from './flow/flowWebhook.js';

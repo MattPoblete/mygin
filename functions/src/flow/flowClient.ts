@@ -67,9 +67,9 @@ export async function createPayment(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
   });
-  const data = (await res.json()) as { url?: string; token?: string; flowOrder?: number; message?: string };
+  const data = (await res.json()) as { url?: string; token?: string; flowOrder?: number; code?: number; message?: string };
   if (!res.ok || !data.url || !data.token) {
-    throw new Error(`Flow createPayment falló: ${data.message ?? res.status}`);
+    throw new Error(`Flow createPayment falló [${data.code ?? res.status}]: ${data.message ?? 'sin mensaje'}`);
   }
   return {
     url: data.url,
@@ -94,9 +94,9 @@ export async function getStatus(token: string, creds: FlowCreds): Promise<FlowSt
   params.s = signParams(params, creds.secretKey);
   const qs = new URLSearchParams(params).toString();
   const res = await fetch(`${flowApiBase()}/payment/getStatus?${qs}`, { method: 'GET' });
-  const data = (await res.json()) as Record<string, unknown> & { status?: number; message?: string };
+  const data = (await res.json()) as Record<string, unknown> & { status?: number; code?: number; message?: string };
   if (!res.ok || typeof data.status !== 'number') {
-    throw new Error(`Flow getStatus falló: ${data.message ?? res.status}`);
+    throw new Error(`Flow getStatus falló [${data.code ?? res.status}]: ${data.message ?? 'sin mensaje'}`);
   }
   return {
     status: data.status,

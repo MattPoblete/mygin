@@ -53,10 +53,14 @@ sin setear ⇒ mock); Flow real sigue listo en el código para cuando se quiera 
   `overselling.spec` pega al callable (sobre `{data}`; oversell → HTTP 400). Workers
   locales capados a 4 (un solo emulador de Functions). **105 tests passing**, build limpio.
 - ✅ **Desplegado (mock)** — `firebase deploy --only functions` con secretos placeholder
-  (`FLOW_API_KEY`/`FLOW_SECRET_KEY` dummy; en mock no se leen). 6 funciones live; smoke
-  test del callable `validateCoupon` en prod → 200 público. Runbook en
+  (los 4 `FLOW_SANDBOX_*`/`FLOW_PRODUCTION_*` dummy; en mock no se leen). 6 funciones live;
+  smoke test del callable `validateCoupon` en prod → 200 público. Runbook en
   `docs/DEPLOY_FUNCTIONS.md`. Para ir a Flow real: setear las llaves reales +
-  `PAYMENTS_MODE=live` y redeployar (opción B del runbook).
+  `PAYMENTS_MODE=sandbox|production` y redeployar (opción B del runbook).
+- ✅ **Credenciales Flow por ambiente** — `PAYMENTS_MODE` ahora es tri-estado
+  (`mock|sandbox|production`): una sola env decide base URL + par de llaves. Dos pares de
+  secretos coexisten (`functions/src/flow/secrets.ts`), imposible mezclar key sandbox con
+  URL prod. `FLOW_API_BASE` eliminado.
 
 ---
 

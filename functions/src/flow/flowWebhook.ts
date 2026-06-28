@@ -13,11 +13,11 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../shared/admin.js';
 import { getStatus } from './flowClient.js';
-import { FLOW_API_KEY, FLOW_SECRET_KEY } from './createOrder.js';
+import { FLOW_SECRETS, flowCreds } from './secrets.js';
 import { REGION } from '../shared/config.js';
 
 export const flowWebhook = onRequest(
-  { region: REGION, secrets: [FLOW_API_KEY, FLOW_SECRET_KEY] },
+  { region: REGION, secrets: FLOW_SECRETS },
   async (req, res) => {
     try {
       const token = (req.body?.token ?? req.query?.token) as string | undefined;
@@ -26,8 +26,7 @@ export const flowWebhook = onRequest(
         return;
       }
 
-      const creds = { apiKey: FLOW_API_KEY.value(), secretKey: FLOW_SECRET_KEY.value() };
-      const status = await getStatus(token, creds);
+      const status = await getStatus(token, flowCreds());
 
       const orderId = status.commerceOrder;
       if (!orderId) {
