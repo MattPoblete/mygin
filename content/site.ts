@@ -106,8 +106,8 @@ const site = {
     instagramUrl: 'https://instagram.com/mygin.cl',
     email: 'destileriamygin@gmail.com',
     /** Número en formato legible para mostrar y dígitos puros para el enlace wa.me */
-    whatsapp: '+56 9 4029 6196',
-    whatsappUrl: 'https://wa.me/56940296196',
+    whatsapp: '+56987686490',
+    whatsappUrl: 'https://wa.me/56987686490',
     origin: 'Villarrica, Araucanía',
     coordinates: '39°S · 72°O',
     year: '2025',

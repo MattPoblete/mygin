@@ -55,7 +55,7 @@ export default function ConfirmacionPage({ params }: { params: Promise<{ orderId
                   <li>Despachamos en 2 a 5 días hábiles dentro de Chile.</li>
                   <li>
                     ¿Dudas con tu pedido? Escríbenos a{' '}
-                    <a href="mailto:hola@mygin.cl" className="text-primary underline">hola@mygin.cl</a>.
+                    <a href="mailto:destileriamygin@gmail.com" className="text-primary underline">destileriamygin@gmail.com</a>.
                   </li>
                 </ul>
               </div>
